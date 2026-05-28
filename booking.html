@@ -363,7 +363,7 @@
             loadingModal.classList.remove('hidden');
 
             try {
-                const response = await fetch('https://api.guessmycollege.in/create-payment-order', {
+                const response = await fetch('${API_BASE}/create-payment-order', {
                     method: 'POST'
                 });
                 
@@ -389,7 +389,7 @@
 
                         // Send everything to Python for cryptographic verification
                         // ⚠️ NOTE: Change localhost:5000 to your live server URL when deploying!
-                        fetch('https://api.guessmycollege.in/verify-booking', {
+                        fetch('${API_BASE}/verify-booking', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
