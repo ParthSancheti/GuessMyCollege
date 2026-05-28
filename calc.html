@@ -414,7 +414,7 @@
                 formData.append('file', file);
                 formData.append('category', categoryInput.value);
 
-                fetch('https://api.guessmycollege.in/calculate-score', {
+                fetch('${API_BASE}/calculate-score', {
                     method: 'POST',
                     body: formData
                 })
