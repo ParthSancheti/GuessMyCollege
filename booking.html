@@ -363,7 +363,7 @@
             loadingModal.classList.remove('hidden');
 
             try {
-                const response = await fetch('https://vividness-dripping-expansion.ngrok-free.dev/create-payment-order', {
+                const response = await fetch('https://api.guessmycollege.in/create-payment-order', {
                     method: 'POST'
                 });
                 
@@ -373,7 +373,7 @@
                 loadingModal.classList.add('hidden');
 
                 const options = {
-                    "key": "rzp_test_StXFshYiTuu4f0", 
+                    "key": "data.key_id", 
                     "amount": data.amount, 
                     "currency": "INR",
                     "name": "Guess My College",
@@ -389,7 +389,7 @@
 
                         // Send everything to Python for cryptographic verification
                         // ⚠️ NOTE: Change localhost:5000 to your live server URL when deploying!
-                        fetch('https://vividness-dripping-expansion.ngrok-free.dev/verify-booking', {
+                        fetch('https://api.guessmycollege.in/verify-booking', {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
