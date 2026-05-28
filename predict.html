@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="global.js" defer></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Predictor | Guess My College</title>
+  <link rel="icon" href="bin/logo_rounded.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    // Apply theme BEFORE paint to avoid flash
+    const _t = localStorage.getItem('gmc-theme') || 'dark';
+    document.documentElement.classList.toggle('dark', _t !== 'light');
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: {
+        fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] },
+        colors: {
+          v: { 50:'#f5f3ff',100:'#ede9fe',200:'#ddd6fe',300:'#c4b5fd',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed',700:'#6d28d9',800:'#5b21b6',900:'#4c1d95' }
+        },
+        animation: {
+          'spin-slow':   'spin 16s linear infinite',
+          'spin-rev':    'spinRev 18s linear infinite',
+          'pop-in':      'popIn .45s cubic-bezier(.16,1,.3,1) both',
+          'pulse-glow':  'pulseGlow 2s ease-in-out infinite',
+          'fade-up':     'fadeUp .3s ease both'
+        },
+        keyframes: {
+          spinRev:    { to: { transform: 'rotate(-360deg)' } },
+          popIn:      { '0%': { opacity:'0', transform:'scale(.97) translateY(16px)' }, '100%': { opacity:'1', transform:'scale(1) translateY(0)' } },
+          pulseGlow:  { '0%,100%': { opacity:'.8', filter:'blur(10px)', transform:'scale(1)' }, '50%': { opacity:'1', filter:'blur(20px)', transform:'scale(1.2)' } },
+          fadeUp:     { '0%': { opacity:'0', transform:'translateY(7px)' }, '100%': { opacity:'1', transform:'translateY(0)' } }
+        }
+      }}
+    };
+  </script>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: #f0f2f8;
+      transition: background .3s, color .3s;
+      margin: 0;
+    }
+    html.dark body { background: #07080e; }
+
+    /* ── Animated BG blobs ── */
+    @keyframes hueShift { 0%,100%{filter:hue-rotate(0deg)} 50%{filter:hue-rotate(50deg)} }
+    .blob-wrap { animation: hueShift 24s ease-in-out infinite; }
+    @keyframes spinRev { to { transform: rotate(-360deg); } }
+
+    /* ── Glass ── */
+    .glass {
+      background: rgba(255,255,255,.52);
+      backdrop-filter: blur(28px) saturate(160%);
+      -webkit-backdrop-filter: blur(28px) saturate(160%);
+      border: 1px solid rgba(255,255,255,.65);
+      box-shadow: 0 8px 32px rgba(0,0,0,.07);
+    }
+    html.dark .glass {
+      background: rgba(12,12,20,.64);
+      border: 1px solid rgba(255,255,255,.09);
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+    }
+    .card {
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(0,0,0,.055);
+    }
+    html.dark .card {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.07);
+    }
+
+    /* ── Inputs ── */
+    .gi {
+      display: block;
+      width: 100%;
+      background: rgba(255,255,255,.72);
+      border: 1.5px solid rgba(0,0,0,.09);
+      color: #111;
+      border-radius: 14px;
+      padding: 11px 15px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    html.dark .gi {
+      background: rgba(255,255,255,.07);
+      border-color: rgba(255,255,255,.1);
+      color: #fff;
+    }
+    .gi:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,.14); }
+    .gi::placeholder { color: rgba(110,110,140,.45); font-weight: 500; }
+    html.dark .gi::placeholder { color: rgba(180,180,200,.28); }
+    .gi[type=number]::-webkit-inner-spin-button,
+    .gi[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+    .gi[type=number] { -moz-appearance: textfield; }
+
+    /* ── Views ── */
+    .view { transition: opacity .36s, transform .36s; }
+    .view.off { opacity:0; transform:scale(.99); pointer-events:none; position:absolute; visibility:hidden; }
+    .view.on  { opacity:1; transform:scale(1);   pointer-events:auto;  position:relative; visibility:visible; }
+
+    /* ── Scrollbar ── */
+    .sb::-webkit-scrollbar { width: 4px; }
+    .sb::-webkit-scrollbar-track { background: transparent; }
+    .sb::-webkit-scrollbar-thumb { background: rgba(124,58,237,.22); border-radius: 10px; }
+
+    /* ── Pills / chips ── */
+    .s-pill, .f-chip {
+      padding: 5px 13px;
+      border-radius: 99px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all .15s;
+      border: 1.5px solid transparent;
+      white-space: nowrap;
+    }
+    .s-pill { background: rgba(0,0,0,.06); color: inherit; }
+    html.dark .s-pill { background: rgba(255,255,255,.08); }
+    .s-pill.on, .f-chip.on { background: #6d28d9 !important; color: #fff !important; border-color: #6d28d9 !important; }
+    .f-chip { background: transparent; }
+
+    /* ── Checkbox ── */
+    .cbox { width:26px; height:26px; border-radius:50%; border:2.5px solid currentColor; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .15s; flex-shrink:0; }
+    .cbox.checked { background: currentColor; }
+    .cbox svg { display:none; width:13px; height:13px; stroke:#fff; stroke-width:3; }
+    .cbox.checked svg { display: block; }
+    .c-safe     { color: #16a34a; }
+    .c-moderate { color: #d97706; }
+    .c-reach    { color: #dc2626; }
+
+    /* ── AI spinner ── */
+    .ai-core { position:relative; width:128px; height:128px; display:flex; align-items:center; justify-content:center; }
+    .ai-core .r1 { position:absolute; inset:0;   border-radius:50%; border:2px dashed #7c3aed; animation: spin 5s linear infinite; }
+    .ai-core .r2 { position:absolute; inset:15px; border-radius:50%; border:2px solid transparent; border-top-color:#3b82f6; border-bottom-color:#ec4899; animation: spinRev 2.5s linear infinite; }
+    .ai-core .r3 { position:absolute; inset:30px; border-radius:50%; border:3px dotted #6d28d9; opacity:.5; animation: spin 7s linear infinite; }
+    .ai-core .rc { position:absolute; width:28px; height:28px; background:#fff; border-radius:50%; box-shadow:0 0 32px 12px #7c3aed; animation: pulseGlow 2s ease-in-out infinite; }
+
+    /* ── SweetAlert custom ── */
+    .gs  { background:rgba(12,12,20,.92)!important; backdrop-filter:blur(24px)!important; border:1px solid rgba(255,255,255,.1)!important; border-radius:2rem!important; color:#fff!important; box-shadow:0 25px 50px rgba(0,0,0,.6)!important; }
+    html:not(.dark) .gs { background:rgba(255,255,255,.94)!important; color:#111!important; }
+    .gs-ok { background:#6d28d9!important; border-radius:1rem!important; font-weight:800!important; padding:11px 26px!important; }
+    .gs-cl { background:rgba(120,120,120,.2)!important; border-radius:1rem!important; font-weight:800!important; padding:11px 26px!important; }
+
+    /* ── City dropdown ── */
+    #city-drop { z-index:9999; max-height:210px; }
+    .city-item { padding:9px 13px; cursor:pointer; font-weight:700; font-size:13px; transition:background .12s; border-radius:10px; margin:2px; }
+    .city-item:hover { background: rgba(124,58,237,.1); }
+
+    /* ── Glass dropdowns (custom select) ── */
+    .gdrop {
+      border: 1px solid rgba(255,255,255,.28);
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(28px);
+    }
+    html.dark .gdrop {
+      background: rgba(12,12,20,.98);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 20px 48px rgba(0,0,0,.8);
+    }
+    .gopt { padding:10px 13px; cursor:pointer; font-weight:700; font-size:13px; transition:all .13s; border-radius:10px; margin:2px; }
+    .gopt:hover { background: rgba(124,58,237,.12); }
+    .gopt.sel  { background: rgba(124,58,237,.18); color:#6d28d9; }
+    html.dark .gopt.sel { background: rgba(124,58,237,.28); color:#c4b5fd; }
+    .gopt.dis  { opacity:.35; cursor:not-allowed; pointer-events:none; }
+
+    /* ── Glass trigger (select replacement) ── */
+    .gtrig {
+      display:flex; align-items:center; justify-content:space-between;
+      width:100%; cursor:pointer;
+      background: rgba(255,255,255,.72);
+      border: 1.5px solid rgba(0,0,0,.09);
+      color: #111;
+      border-radius: 14px;
+      padding: 11px 15px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      transition: border-color .2s, box-shadow .2s;
+      user-select: none;
+    }
+    html.dark .gtrig {
+      background: rgba(255,255,255,.07);
+      border-color: rgba(255,255,255,.1);
+      color: #fff;
+    }
+    .gtrig:focus, .gtrig.open { border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,.13); outline:none; }
+
+    /* ── College card ── */
+    .college-card { border-radius:18px; padding:13px 15px; transition:box-shadow .15s, transform .15s; cursor:pointer; }
+    .college-card:hover { box-shadow:0 5px 18px rgba(0,0,0,.09); transform:translateY(-1px); }
+    html.dark .college-card:hover { box-shadow:0 5px 18px rgba(0,0,0,.32); }
+
+    /* ── Field label ── */
+    .fl { font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; margin-bottom:5px; display:block; opacity:.62; }
+    .fl.req::after { content:'*'; color:#ef4444; margin-left:3px; }
+
+    /* ── Section card ── */
+    .sec-card { border-radius:22px; padding:20px; margin-bottom:14px; }
+
+    /* ── Multi-category ── */
+    .cat-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+    .cat-wrap { flex:1; transition:flex .25s, max-width .25s; }
+    .cat-row.compact .cat-wrap { flex:0 0 auto; width:175px; }
+    .cat-add { width:30px; height:30px; border-radius:10px; border:1.5px solid rgba(124,58,237,.36); background:transparent; color:#6d28d9; font-size:18px; font-weight:900; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .18s; flex-shrink:0; line-height:1; }
+    html.dark .cat-add { color:#c4b5fd; border-color:rgba(196,181,253,.26); }
+    .cat-add:hover { background:rgba(124,58,237,.1); border-color:#6d28d9; }
+    .cat-rm { width:25px; height:25px; border-radius:8px; border:none; background:rgba(239,68,68,.1); color:#ef4444; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .18s; flex-shrink:0; }
+    .cat-rm:hover { background:rgba(239,68,68,.18); }
+
+    /* ── Minority sub ── */
+    #min-sub-wrap { overflow:hidden; max-height:0; opacity:0; transition:max-height .34s ease, opacity .34s; }
+    #min-sub-wrap.open { max-height:200px; opacity:1; }
+
+    /* ── Branch dropdown ── */
+    .br-trigger {
+      display:flex; align-items:center; justify-content:space-between;
+      width:100%; cursor:pointer;
+      background: rgba(255,255,255,.72);
+      border: 1.5px solid rgba(0,0,0,.09);
+      color: #111;
+      border-radius: 14px;
+      padding: 11px 15px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 13px;
+      transition: border-color .2s, box-shadow .2s;
+      text-align: left;
+    }
+    html.dark .br-trigger {
+      background: rgba(255,255,255,.07);
+      border-color: rgba(255,255,255,.1);
+      color: #fff;
+    }
+    .br-trigger:focus, .br-trigger.open { border-color:#7c3aed; box-shadow:0 0 0 3px rgba(124,58,237,.13); outline:none; }
+    .br-menu { position:fixed; z-index:9999; border-radius:18px; padding:5px; max-height:260px; overflow-y:auto; }
+    .br-menu.hidden { display:none; }
+    .br-item { display:flex; align-items:center; gap:9px; padding:8px 11px; border-radius:11px; cursor:pointer; font-weight:700; font-size:13px; transition:background .12s; user-select:none; }
+    .br-item:hover { background:rgba(124,58,237,.09); }
+    .br-item input[type=checkbox] { width:15px; height:15px; accent-color:#6d28d9; cursor:pointer; flex-shrink:0; }
+    .br-badge { display:inline-flex; align-items:center; background:rgba(124,58,237,.13); color:#6d28d9; padding:2px 7px; border-radius:7px; font-size:11px; font-weight:800; }
+    html.dark .br-badge { background:rgba(124,58,237,.24); color:#c4b5fd; }
+
+    /* ── Cat tabs on results ── */
+    .cat-tab { padding:7px 16px; border-radius:11px; font-weight:800; font-size:12px; cursor:pointer; transition:all .18s; border:1.5px solid rgba(124,58,237,.22); white-space:nowrap; color:#6d28d9; background:transparent; }
+    html.dark .cat-tab { color:#c4b5fd; border-color:rgba(196,181,253,.18); }
+    .cat-tab.active { background:#6d28d9; color:#fff; border-color:#6d28d9; }
+    #cat-tabs-wrap { display:none; }
+    #cat-tabs-wrap.show { display:flex; }
+
+    /* ── Disclaimer ── */
+    .disclaimer {
+      border-radius:13px; padding:9px 13px; font-size:11px; font-weight:700;
+      background: rgba(245,158,11,.09); border:1px solid rgba(245,158,11,.28);
+      color: #92400e; display:flex; align-items:flex-start; gap:7px; line-height:1.5;
+    }
+    html.dark .disclaimer { background:rgba(245,158,11,.07); border-color:rgba(245,158,11,.2); color:#fbbf24; }
+
+    /* ── JEE note ── */
+    .jee-note { font-size:10px; color:#7c3aed; font-weight:700; margin-top:3px; }
+    html.dark .jee-note { color:#a78bfa; }
+
+    /* ── Skeleton shimmer ── */
+    @keyframes shimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+    .skeleton {
+      border-radius: 13px;
+      background: linear-gradient(90deg, rgba(0,0,0,.06) 25%, rgba(0,0,0,.1) 50%, rgba(0,0,0,.06) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+    }
+    html.dark .skeleton {
+      background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.09) 50%, rgba(255,255,255,.04) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+    }
+
+    /* ── Score type toggle ── */
+    .stab { padding:6px 13px; border-radius:9px; font-size:11px; font-weight:800; cursor:pointer; transition:all .15s; border:none; background:transparent; color:inherit; opacity:.5; font-family:inherit; }
+    .stab.active { background:#6d28d9; color:#fff; opacity:1; }
+    .spanel { display:none; }
+    .spanel.active { display:block; }
+
+    /* ── Border dividers ── */
+    .div-line { border-color: rgba(0,0,0,.08); }
+    html.dark .div-line { border-color: rgba(255,255,255,.08); }
+
+    /* ── Ribbon border ── */
+    .ribbon-border { border-bottom: 1px solid rgba(0,0,0,.07); }
+    html.dark .ribbon-border { border-bottom: 1px solid rgba(255,255,255,.07); }
+  </style>
+</head>
+
+<body class="text-gray-900 dark:text-white overflow-x-hidden min-h-[100dvh] flex flex-col" style="user-select:none">
+
+<!-- BG blobs -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none blob-wrap">
+  <div class="absolute rounded-full" style="top:-15%;left:-15%;width:65vw;height:65vw;background:radial-gradient(circle,#7c3aed,#c026d3);filter:blur(120px);opacity:.22;animation:spin 16s linear infinite;mix-blend-mode:multiply;"></div>
+  <div class="absolute rounded-full" style="bottom:-15%;right:-15%;width:55vw;height:55vw;background:radial-gradient(circle,#2563eb,#06b6d4);filter:blur(120px);opacity:.22;animation:spinRev 18s linear infinite;mix-blend-mode:multiply;"></div>
+</div>
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none blob-wrap" style="filter:none">
+  <div class="absolute rounded-full hidden dark:block" style="top:-15%;left:-15%;width:65vw;height:65vw;background:radial-gradient(circle,#7c3aed,#c026d3);filter:blur(120px);opacity:.14;animation:spin 16s linear infinite;mix-blend-mode:screen;"></div>
+  <div class="absolute rounded-full hidden dark:block" style="bottom:-15%;right:-15%;width:55vw;height:55vw;background:radial-gradient(circle,#2563eb,#06b6d4);filter:blur(120px);opacity:.14;animation:spinRev 18s linear infinite;mix-blend-mode:screen;"></div>
+</div>
+
+<div class="relative z-10 w-full max-w-[92rem] mx-auto px-4 md:px-8 py-5 min-h-[100dvh] flex flex-col">
+
+  <!-- Top bar -->
+  <div class="flex justify-between items-center mb-5">
+    <a href="index.html" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-full glass shadow hover:-translate-x-1 transition-transform">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      <span class="font-black text-xs uppercase tracking-widest">Home</span>
+    </a>
+    <div class="flex items-center gap-3">
+        <div id="inline-token-display" class="hidden glass px-4 py-2 rounded-full items-center gap-2 cursor-pointer hover:bg-white/10 transition-colors" onclick="window.location.href='premium.html?topup=1'">
+            <span class="text-lg">🔋</span>
+            <div class="flex flex-col">
+                <span class="text-[9px] font-black uppercase tracking-widest text-purple-500 leading-none">Tokens Left</span>
+                <span id="inline-token-count" class="font-black text-xs leading-tight">...</span>
+            </div>
+        </div>
+        
+        <div class="glass px-4 py-2.5 rounded-full flex items-center gap-2">
+          <div id="status-dot" class="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+          <span id="status-lbl" class="font-bold text-[10px] md:text-xs uppercase tracking-widest text-gray-600 dark:text-gray-300">Checking…</span>
+        </div>
+    </div>
+  </div>
+
+  <!-- Main card -->
+  <div class="glass rounded-[2.5rem] w-full p-5 md:p-9 shadow-2xl flex-1 flex flex-col animate-pop-in" style="overflow:hidden;position:relative;">
+
+    <!-- ═════════════════════════════ VIEW 1 · FORM ═════ -->
+    <div id="v-form" class="view on flex flex-col flex-1">
+
+      <div class="text-center mb-6">
+        <h1 class="text-3xl md:text-5xl font-black tracking-tight mb-2">College <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-blue-500">Predictor.</span></h1>
+        <p class="text-gray-500 dark:text-gray-400 font-semibold text-sm">AI-powered · Category-aware · Trend-projected</p>
+      </div>
+
+      <!-- Disclaimer top -->
+      <div class="disclaimer max-w-3xl mx-auto w-full mb-4">
+        <span class="text-sm shrink-0 mt-0.5">⚠️</span>
+        <span><b>Disclaimer:</b> Predictions are AI-generated estimates based on historical cutoff data. Guess My College (GMC) can make errors. Always recheck official cutoffs on <b>mhtcet2025.mahacet.org</b> before finalising your option form. This is a planning tool only.</span>
+      </div>
+
+      <div class="w-full max-w-3xl mx-auto flex-1 overflow-y-auto sb" style="padding-right:2px;">
+
+        <!-- A · EXAM DETAILS -->
+        <div class="sec-card relative overflow-hidden" style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.2);">
+          <div class="absolute top-0 left-0 w-1 h-full rounded-r-full" style="background:#6d28d9;"></div>
+          <div class="flex items-center gap-2 mb-4 pl-2">
+            <span class="text-lg">📅</span>
+            <h3 class="font-black text-violet-800 dark:text-violet-300 text-sm">Exam Details</h3>
+            <span class="ml-auto text-[10px] font-black text-red-500 uppercase tracking-widest">Required</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="fl req">Exam Date</label>
+              <div id="examdate-wrap"></div>
+              <select id="f-examdate" style="display:none">
+                <option value="">— Select your date —</option>
+                <option>11 April 2026</option><option>13 April 2026</option>
+                <option>14 April 2026</option><option>15 April 2026</option>
+                <option>16 April 2026</option><option>17 April 2026</option>
+                <option>18 April 2026</option><option>19 April 2026</option>
+                <option>20 April 2026</option><option>12 May 2026</option>
+                <option>13 May 2026</option><option>14 May 2026</option>
+                <option>15 May 2026</option><option>18 May 2026</option>
+                <option>19 May 2026</option><option>20 May 2026</option>
+                <option>21 May 2026</option><option value="Other">Other / Not sure</option>
+              </select>
+            </div>
+            <div>
+              <label class="fl req">Shift</label>
+              <div id="shift-wrap"></div>
+              <select id="f-shift" style="display:none">
+                <option value="">— Select shift —</option>
+                <option value="PCM_S1">PCM Shift 1 (9:00 AM – 12:00 PM)</option>
+                <option value="PCM_S2">PCM Shift 2 (2:00 PM – 5:00 PM)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- B · YOUR SCORE -->
+        <div class="card sec-card">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-lg">🎯</span>
+            <h3 class="font-black text-sm">Your Score</h3>
+            <span class="ml-auto text-[10px] font-bold text-gray-500 uppercase tracking-widest">Enter any one</span>
+          </div>
+          <!-- Score type tabs -->
+          <div class="flex gap-1 p-1 rounded-xl mb-4 w-fit" style="background:rgba(0,0,0,.06);">
+            <button class="stab active" data-panel="cet" onclick="switchScoreTab('cet')">MHT-CET / CEET</button>
+            <button class="stab" data-panel="jee" onclick="switchScoreTab('jee')">JEE Main</button>
+          </div>
+          <!-- CET panel -->
+          <div id="spanel-cet" class="spanel active">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="fl">CET Percentile</label>
+                <input id="f-percentile" type="number" step="0.0001" min="0" max="100" placeholder="e.g. 96.5421" class="gi">
+              </div>
+
+              <div>
+                <label class="fl">Marks (PCM)</label>
+                <input id="f-marks" type="number" min="0" max="200" placeholder="e.g. 148" class="gi">
+                <p class="text-[10px] font-bold mt-1" style="color:#7c3aed;">→ auto-converts to %ile</p>
+              </div>
+            </div>
+          </div>
+          <!-- JEE panel -->
+          <div id="spanel-jee" class="spanel">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="fl">JEE Percentile</label>
+                <input id="f-jee-pct" type="number" step="0.0001" min="0" max="100" placeholder="e.g. 87.45" class="gi">
+                <p class="jee-note">Used for AI analysis (JEE→MHT-CET mapping applied)</p>
+              </div>
+              <div>
+                <label class="fl">JEE Main Rank</label>
+                <input id="f-jee-rank" type="number" min="1" placeholder="e.g. 45000" class="gi">
+                <p class="jee-note">Rank is for JEE only — CEET does not use rank</p>
+              </div>
+            </div>
+            <div class="mt-3 rounded-xl px-3 py-2 text-[11px] font-semibold" style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.18);color:#1d4ed8;">
+              ℹ️ JEE score is converted to an approximate MHT-CET percentile for college matching. CEET students: use the MHT-CET tab.
+            </div>
+          </div>
+        </div>
+
+        <!-- C · YOUR PROFILE -->
+        <div class="card sec-card">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="text-lg">🧑‍🎓</span>
+            <h3 class="font-black text-sm">Your Profile</h3>
+            <span class="ml-auto text-[10px] font-bold uppercase tracking-widest" style="color:#7c3aed;">Boosts Accuracy</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+            <!-- Multi-category -->
+            <div class="sm:col-span-2">
+              <label class="fl">Category / Caste <span class="text-gray-400 normal-case tracking-normal ml-1" style="font-size:10px;font-weight:600;">(up to 3 — compare simultaneously)</span></label>
+              <div id="cat-rows"></div>
+              <!-- Minority sub -->
+              <div id="min-sub-wrap">
+                <div class="mt-2 rounded-xl p-3" style="background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.18);">
+                  <label class="fl" style="color:#6d28d9;">Minority Sub-Category</label>
+                  <div id="min-sub-gl"></div>
+                  <select id="f-min-sub" style="display:none">
+                    <option value="">— Select sub-category —</option>
+                    <optgroup label="Religious Minority" data-g="RELIGIOUS_MINORITY">
+                      <option value="CHRISTIAN_MINORITY">Christian Minority (St. Vincent's, Franciscan etc.)</option>
+                      <option value="SIKH_MINORITY">Sikh Minority (Guru Nanak Institutions)</option>
+                      <option value="PARSI_MINORITY">Parsi / Zoroastrian Minority</option>
+                      <option value="BUDDHIST_MINORITY">Buddhist Minority</option>
+                      <option value="JAIN_MINORITY">Jain Minority (SNJB, JSCOE etc.)</option>
+                      <option value="MUSLIM_MINORITY">Muslim Minority</option>
+                    </optgroup>
+                    <optgroup label="Linguistic Minority" data-g="LINGUISTIC_MINORITY">
+                      <option value="GUJARATI_LINGUISTIC">Gujarati Linguistic Minority</option>
+                      <option value="HINDI_LINGUISTIC">Hindi Linguistic Minority</option>
+                      <option value="SINDHI_LINGUISTIC">Sindhi Linguistic Minority</option>
+                      <option value="URDU_LINGUISTIC">Urdu Linguistic Minority</option>
+                      <option value="TELUGU_LINGUISTIC">Telugu Linguistic Minority</option>
+                      <option value="KANNADA_LINGUISTIC">Kannada Linguistic Minority</option>
+                    </optgroup>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Gender -->
+            <div>
+              <label class="fl">Gender</label>
+              <div id="gender-wrap"></div>
+              <select id="f-gender" style="display:none">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+
+            <!-- Branch (max 3) -->
+            <div>
+              <label class="fl">Preferred Branch <span class="text-gray-400 normal-case tracking-normal ml-1" style="font-size:10px;font-weight:600;">(max 3)</span></label>
+              <div id="br-wrap" style="position:relative;">
+                <button type="button" class="br-trigger" id="br-trigger" onclick="toggleBrMenu(event)">
+                  <span id="br-ttext" class="flex items-center gap-2 flex-wrap">All Branches</span>
+                  <svg class="w-4 h-4 shrink-0 ml-2" style="opacity:.45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div class="br-menu hidden gdrop glass" id="br-menu">
+                  <div class="br-item" onclick="toggleBr('ALL',event)"><input type="checkbox" id="bch-ALL" checked><label for="bch-ALL" style="cursor:pointer">All Branches</label></div>
+                  <div class="br-item" onclick="toggleBr('CSE',event)"><input type="checkbox" id="bch-CSE"><label for="bch-CSE" style="cursor:pointer">Computer Engineering (CSE)</label></div>
+                  <div class="br-item" onclick="toggleBr('IT',event)"><input type="checkbox" id="bch-IT"><label for="bch-IT" style="cursor:pointer">Information Technology (IT)</label></div>
+                  <div class="br-item" onclick="toggleBr('AIDS',event)"><input type="checkbox" id="bch-AIDS"><label for="bch-AIDS" style="cursor:pointer">AI &amp; Data Science (AIDS)</label></div>
+                  <div class="br-item" onclick="toggleBr('AIML',event)"><input type="checkbox" id="bch-AIML"><label for="bch-AIML" style="cursor:pointer">AI &amp; Machine Learning (AIML)</label></div>
+                  <div class="br-item" onclick="toggleBr('ENTC',event)"><input type="checkbox" id="bch-ENTC"><label for="bch-ENTC" style="cursor:pointer">Electronics &amp; Telecom (ENTC)</label></div>
+                  <div class="br-item" onclick="toggleBr('ECE',event)"><input type="checkbox" id="bch-ECE"><label for="bch-ECE" style="cursor:pointer">Electronics (ECE)</label></div>
+                  <div class="br-item" onclick="toggleBr('EE',event)"><input type="checkbox" id="bch-EE"><label for="bch-EE" style="cursor:pointer">Electrical (EE)</label></div>
+                  <div class="br-item" onclick="toggleBr('ME',event)"><input type="checkbox" id="bch-ME"><label for="bch-ME" style="cursor:pointer">Mechanical (ME)</label></div>
+                  <div class="br-item" onclick="toggleBr('CIVIL',event)"><input type="checkbox" id="bch-CIVIL"><label for="bch-CIVIL" style="cursor:pointer">Civil Engineering</label></div>
+                  <div class="br-item" onclick="toggleBr('CHEM',event)"><input type="checkbox" id="bch-CHEM"><label for="bch-CHEM" style="cursor:pointer">Chemical Engineering</label></div>
+                  <div class="br-item" onclick="toggleBr('ROBO',event)"><input type="checkbox" id="bch-ROBO"><label for="bch-ROBO" style="cursor:pointer">Robotics &amp; Automation</label></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- City -->
+            <div class="sm:col-span-2">
+              <label class="fl">Preferred City / Cities</label>
+              <div class="relative" id="city-wrap">
+                <input id="city-search" type="text" placeholder="Search city… (multiple allowed)" autocomplete="off" class="gi" style="padding-right:36px;">
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style="opacity:.38" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="hidden" id="f-city">
+                <div id="city-drop" class="hidden absolute top-full left-0 right-0 mt-1 rounded-2xl glass shadow-2xl overflow-y-auto sb p-1"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <p class="text-center text-gray-400 font-semibold mb-5 px-2" style="font-size:11px;">🔒 Shift normalisation · 3-year trend projection · Category seat mapping · Minority engine — running in parallel.</p>
+      </div>
+
+      <!-- Predict button -->
+      <div class="max-w-3xl mx-auto w-full pt-3 shrink-0">
+        <button onclick="runPrediction()" class="w-full flex items-center justify-center gap-3 font-black py-4 rounded-2xl active:scale-95 shadow-xl text-sm md:text-base hover:opacity-90 transition-all" style="background:linear-gradient(135deg,#6d28d9,#2563eb);color:#fff;">
+          🚀 Predict My Colleges
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/></svg>
+        </button>
+        <p class="text-center font-semibold mt-3" style="font-size:10px;color:#9ca3af;">⚠️ GMC predictions may contain errors — always recheck on official portals before submitting your option form.</p>
+      </div>
+    </div><!-- /v-form -->
+
+    <!-- ═════════════════════════════ VIEW 2 · LOADING ═════ -->
+    <div id="v-loading" class="view off flex-1 flex flex-col items-center justify-center text-center py-20">
+      <div class="ai-core mb-7">
+        <div class="r1"></div><div class="r2"></div><div class="r3"></div><div class="rc"></div>
+      </div>
+      <h2 class="text-2xl md:text-3xl font-black mb-2">Running the AI Engine…</h2>
+      <p id="load-msg" class="text-gray-500 dark:text-gray-400 font-bold text-sm">Initializing parameters…</p>
+      </div>
+
+    <!-- ═════════════════════════════ VIEW 3 · RESULTS ═════ -->
+    <div id="v-results" class="view off flex flex-col flex-1">
+
+      <!-- Disclaimer -->
+      <div class="disclaimer mb-4">
+        <span class="text-sm shrink-0 mt-0.5">⚠️</span>
+        <span><b>GMC Notice:</b> AI-estimated predictions — GMC can make errors. Always recheck on <b>mhtcet2025.mahacet.org</b> before finalising. Not a substitute for official counselling.</span>
+      </div>
+
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row sm:items-start gap-3 mb-4">
+        <div class="flex-1">
+          <h2 class="text-2xl md:text-3xl font-black">Predicted Colleges</h2>
+          <p id="meta-line" class="text-xs font-bold text-gray-500 mt-0.5"></p>
+        </div>
+        <button onclick="goForm()" class="self-start shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full card font-black text-xs uppercase tracking-widest hover:opacity-80 transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg> Edit
+        </button>
+      </div>
+
+      <!-- Category tabs -->
+      <div id="cat-tabs-wrap" class="gap-2 flex-wrap mb-3 p-3 rounded-2xl card"></div>
+
+      <!-- AI verdict -->
+      <div class="rounded-[1.4rem] p-4 md:p-5 mb-4 relative overflow-hidden" style="background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.2);">
+        <div class="absolute top-0 left-0 w-1 h-full rounded-r-full" style="background:#6d28d9;"></div>
+        <div class="flex items-center gap-2 mb-2 pl-2">
+          <span class="text-lg">🤖</span>
+          <h3 class="font-black text-violet-800 dark:text-violet-300 text-sm">AI Strategy Verdict</h3>
+          <span id="ai-src" class="ml-auto text-[10px] font-bold uppercase tracking-widest" style="opacity:.5;"></span>
+        </div>
+        <p id="ai-advice" class="font-semibold text-sm leading-relaxed pl-2 text-violet-900 dark:text-violet-200" style="opacity:.85;"></p>
+      </div>
+
+      <!-- Placement cards -->
+      <div id="pl-sec" class="mb-4 hidden">
+        <div class="flex items-center gap-2 mb-2">
+          <span>💼</span>
+          <h3 class="text-xs font-black uppercase tracking-widest text-gray-500">Top-3 Placement Snapshot</h3>
+          <span class="text-[10px] font-bold text-violet-400 uppercase">Gemini AI</span>
+        </div>
+        <div id="pl-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+      </div>
+
+      <!-- Two-panel -->
+      <div class="flex flex-col lg:flex-row gap-4 flex-1" style="min-height:500px;">
+
+        <!-- LEFT · college list -->
+        <div class="w-full lg:w-[58%] flex flex-col card rounded-[1.4rem] overflow-hidden">
+          <div class="shrink-0 p-3 ribbon-border flex flex-col gap-2">
+            <!-- Sort -->
+            <div class="flex items-center gap-1.5 overflow-x-auto sb pb-0.5 flex-nowrap">
+              <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 shrink-0 mr-1">Sort</span>
+              <button data-sort="chance" class="s-pill on shrink-0">% Chance</button>
+              <button data-sort="rank"   class="s-pill shrink-0">College Rank</button>
+              <button data-sort="cutoff" class="s-pill shrink-0">Cutoff ↑</button>
+            </div>
+            <!-- Risk filter -->
+            <div class="flex items-center gap-1.5 overflow-x-auto sb pb-0.5 flex-nowrap">
+              <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 shrink-0 mr-1">Filter</span>
+              <button data-filter="ALL"      class="f-chip on shrink-0" style="border:1.5px solid rgba(0,0,0,.1)">All</button>
+              <button data-filter="Location" class="f-chip shrink-0"    style="border:1.5px solid rgba(59,130,246,.3);color:#3b82f6">Location 📍</button>
+              <button data-filter="Safe"     class="f-chip shrink-0"    style="border:1.5px solid rgba(22,163,74,.3);color:#16a34a">Safe 🟢</button>
+              <button data-filter="Moderate" class="f-chip shrink-0"    style="border:1.5px solid rgba(217,119,6,.3);color:#d97706">Moderate 🟡</button>
+              <button data-filter="Reach"    class="f-chip shrink-0"    style="border:1.5px solid rgba(220,38,38,.3);color:#dc2626">Reach 🔴</button>
+            </div>
+            <!-- Branch filter -->
+            <div class="flex items-center gap-1.5 overflow-x-auto sb pb-0.5 flex-nowrap">
+              <span class="text-[10px] font-black uppercase tracking-widest text-gray-400 shrink-0 mr-1">Branch</span>
+              <button data-bf="ALL"   class="f-chip on shrink-0"  style="border:1.5px solid rgba(124,58,237,.22);color:#6d28d9">All</button>
+              <button data-bf="CSE"   class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">CSE</button>
+              <button data-bf="IT"    class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">IT</button>
+              <button data-bf="AIDS"  class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">AIDS</button>
+              <button data-bf="AIML"  class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">AIML</button>
+              <button data-bf="ENTC"  class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">ENTC</button>
+              <button data-bf="ME"    class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">ME</button>
+              <button data-bf="CIVIL" class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">Civil</button>
+              <button data-bf="EE"    class="f-chip shrink-0"     style="border:1.5px solid rgba(124,58,237,.15);">EE</button>
+            </div>
+            <!-- Search -->
+            <div class="flex gap-2">
+              <input id="search-box" type="text" placeholder="Search college or branch…" class="gi flex-1" style="padding:8px 12px;border-radius:12px;font-size:12px;">
+              <button onclick="selectAllVisible()" class="shrink-0 px-3 py-2 rounded-xl card text-[11px] font-black hover:opacity-80 transition">All ✓</button>
+            </div>
+            <p id="result-count" class="font-bold pl-1" style="font-size:10px;color:#9ca3af;"></p>
+          </div>
+          <div id="college-list" class="flex-1 overflow-y-auto sb p-3 flex flex-col gap-2"></div>
+        </div>
+
+        <!-- RIGHT · option form -->
+        <div class="w-full lg:w-[42%] flex flex-col card rounded-[1.4rem] overflow-hidden">
+          <div class="shrink-0 p-4 ribbon-border">
+            <div class="flex items-start gap-2 mb-2">
+              <div class="flex-1">
+                <span class="text-white px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest inline-block mb-1.5" style="background:#6d28d9;">Official Format</span>
+                <h2 class="text-lg font-black leading-tight">My Option Form</h2>
+                <p class="text-[11px] font-semibold text-gray-500 mt-0.5">Tick colleges · Reorder below</p>
+              </div>
+              <div class="shrink-0 w-8 h-8 rounded-full card flex items-center justify-center font-black text-sm" id="cap-count">0</div>
+            </div>
+            <!-- Disclaimer in form panel -->
+            <div class="disclaimer mb-3" style="padding:7px 10px;font-size:10px;">
+              <span>⚠️</span>
+              <span>GMC-generated — recheck all cutoffs officially before submitting.</span>
+            </div>
+            <div class="flex flex-col gap-2">
+              <div class="grid grid-cols-2 gap-2">
+                <button onclick="downloadCAPForm()" id="btn-pdf" class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black text-xs transition active:scale-95 shadow" style="background:#111;color:#fff;">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>PDF
+                </button>
+                <button onclick="downloadCSV()" id="btn-csv" class="flex items-center justify-center gap-1.5 py-2.5 rounded-xl font-black text-xs transition active:scale-95 card hover:opacity-80">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 17v-6h6v6m-3-10V3m-7 4h14"/></svg>CSV
+                </button>
+              </div>
+              <button onclick="openReferModal()" class="w-full flex items-center justify-center gap-2 py-2.5 mt-2 rounded-xl font-black text-xs transition active:scale-95 shadow-sm border border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-500/20">
+                  🎁 Refer & Earn (Get 20% Off)
+              </button>
+              <button onclick="bookCounselling()" class="w-full flex items-center justify-center gap-2 py-3 rounded-xl font-black text-sm transition active:scale-95 shadow-lg hover:opacity-90" style="background:linear-gradient(135deg,#6d28d9,#2563eb);color:#fff;">
+                🎓 Book Expert Counselling
+              </button>
+            </div>
+          </div>
+          <div id="selected-list" class="flex-1 overflow-y-auto sb p-3 flex flex-col gap-2"></div>
+          <div id="empty-state" class="flex flex-col items-center justify-center text-center py-10" style="opacity:.4;">
+            <span style="font-size:2.5rem;" class="mb-2">📄</span>
+            <p class="font-black text-sm">Form is empty</p>
+            <p class="text-[11px] font-semibold mt-1">Tick colleges on the left</p>
+          </div>
+        </div>
+      </div><!-- /two-panel -->
+    </div><!-- /v-results -->
+
+  </div><!-- /main card -->
+</div><!-- /page -->
+
+<script>
+/* ═══════════════════════════════════════
+   STATE & CONSTANTS
+═══════════════════════════════════════ */
+let ALL_MATCHES = [], ALL_BY_CAT = {}, META_BY_CAT = {}, PLACEMENTS = [], META = {};
+let currentSort = "chance", currentFilter = "ALL", currentBF = "ALL", searchTerm = "";
+let activeCatTab = 0, activeScoreTab = "cet";
+let selCats = [{ value:"OPEN", label:"Open / General" }];
+let selBranches = [];
+let capList = JSON.parse(localStorage.getItem('gmc-cap-list') || '[]');
+
+const CAT_OPTS = [
+  {value:"OPEN",label:"Open / General"},{value:"EWS",label:"EWS"},
+  {value:"TFWS",label:"TFWS (Tuition-Fee Waiver)"},{value:"OBC",label:"OBC"},
+  {value:"SEBC",label:"SEBC"},{value:"VJ",label:"VJ / DT (VJ-A)"},
+  {value:"NT1",label:"NT-B (NT1)"},{value:"NT2",label:"NT-C (NT2)"},
+  {value:"NT3",label:"NT-D (NT3)"},{value:"SC",label:"SC"},{value:"ST",label:"ST"},
+  {value:"JAIN_MINORITY",label:"Jain Minority"},
+  {value:"RELIGIOUS_MINORITY",label:"Religious Minority"},
+  {value:"LINGUISTIC_MINORITY",label:"Linguistic Minority"},
+  {value:"OTHER_MINORITY",label:"Other Minority"},
+  {value:"PWD",label:"PWD"},{value:"DEFENCE",label:"Defence"}
+];
+
+const MIN_CATS = ["RELIGIOUS_MINORITY","LINGUISTIC_MINORITY","JAIN_MINORITY","OTHER_MINORITY"];
+const CITIES = ["Pune","Mumbai","Nagpur","Aurangabad","Amravati","Nashik","Kolhapur","Solapur","Jalgaon","Nanded","Latur","Sangli","Satara","Ahmednagar","Akola","Chandrapur","Dhule","Ratnagiri","Raigad","Wardha","Yavatmal","Sindhudurg","Palghar","Thane","Navi Mumbai"];
+const BRL = {ALL:"All",CSE:"CSE",IT:"IT",AIDS:"AIDS",AIML:"AIML",ENTC:"ENTC",ECE:"ECE",EE:"EE",ME:"ME",CIVIL:"Civil",CHEM:"Chemical",ROBO:"Robotics"};
+
+/* ═══════════════════════════════════════
+   VIEWS & NAVIGATION
+═══════════════════════════════════════ */
+function showView(id){
+  ["v-form","v-loading","v-results"].forEach(v => {
+    const el = document.getElementById(v);
+    if(el) {
+      el.classList.toggle("on", v === id);
+      el.classList.toggle("off", v !== id);
+    }
+  });
+  window.scrollTo({top: 0, behavior: "smooth"});
+}
+
+function saveCAP() {
+    localStorage.setItem('gmc-cap-list', JSON.stringify(capList));
+}
+
+function goForm(){ showView("v-form"); }
+
+/* ═══════════════════════════════════════
+   STARTUP & INITIALIZATION
+═══════════════════════════════════════ */
+window.addEventListener("DOMContentLoaded", async () => {
+
+    // ── 1. STRICT PAGE BLOCKER ──
+    // If they aren't logged in OR aren't PRO, kick them to premium.html immediately
+    if (!isLoggedIn() || !isPremium()) {
+        window.location.replace('premium.html');
+        return; // This strictly stops the rest of the page from loading!
+    }
+
+    // ── 2. SHOW INLINE TOKENS ──
+    // Since they passed the blocker, we know they are PRO. Show their tokens!
+    const td = document.getElementById('inline-token-display');
+    const tc = document.getElementById('inline-token-count');
+    if (td && tc) {
+        td.classList.add('flex');
+        td.classList.remove('hidden');
+        tc.innerText = getTokensLeft() + " Predictions";
+    }
+
+    // ── 3. INITIALIZE PREDICTOR UI ──
+    mkGlassSel("f-examdate", "examdate-wrap", "— Select your date —");
+    mkGlassSel("f-shift", "shift-wrap", "— Select shift —");
+    mkGlassSel("f-gender", "gender-wrap", null);
+    
+    renderCatRows();
+    initCity();
+    prefill();
+    checkEngine();
+    bindRibbon();
+    syncEmpty();
+
+    // ── 4. REFRESH FRESH DATA FROM SERVER ──
+    if (typeof refreshUserState === 'function') {
+        await refreshUserState();
+    }
+    if (typeof updateTokenBadge === 'function') {
+        updateTokenBadge();
+    }
+    // Re-paint inline token count with the fresh server value
+    const tdFresh = document.getElementById('inline-token-display');
+    const tcFresh = document.getElementById('inline-token-count');
+    if (tdFresh && tcFresh) {
+        const fresh = getTokensLeft();
+        tcFresh.innerText = fresh + (fresh === 1 ? ' Prediction' : ' Predictions');
+        const colorClass = fresh === 0 ? 'text-red-500' : fresh === 1 ? 'text-amber-500' : 'text-purple-400';
+        tcFresh.className = `font-black text-xs leading-tight ${colorClass}`;
+    }
+
+    // ── 5. RESTORE CLICK LISTENERS ──
+    // Closes dropdowns when clicking outside of them
+    document.addEventListener("click", e => {
+        // Close branch dropdown if clicked outside
+        const brMenu = document.getElementById("br-menu");
+        const brTrig = document.getElementById("br-trigger");
+        if (brMenu && brTrig && !brMenu.contains(e.target) && !brTrig.contains(e.target)) {
+            closeBrMenu();
+        }
+        
+        // Close custom glass select dropdowns
+        document.querySelectorAll(".gdrop[data-ddrop]").forEach(d => {
+            d.classList.add("hidden");
+        });
+    });
+
+}); // <-- Perfectly closed block!
+function prefill(){
+  const pct = localStorage.getItem("gmc-percentile");
+  const mks = localStorage.getItem("gmc-marks"); // Grab marks
+
+  if(pct){
+      const el = document.getElementById("f-percentile");
+      if(el) el.value = pct;
+  } else if (mks) {
+      const el = document.getElementById("f-marks");
+      if(el) el.value = mks;
+  }
+
+  try {
+    const c = JSON.parse(localStorage.getItem("gmc-category") || "null");
+    if(Array.isArray(c) && c.length) {
+        selCats = c;
+        renderCatRows();
+    } else if (typeof c === 'string') {
+        // Handle single string fallback from calc.html
+        selCats = [{value: c, label: c}];
+        renderCatRows();
+    }
+  } catch(e) {}
+}
+
+function persist(){
+  const pct = document.getElementById("f-percentile")?.value;
+  if(pct) localStorage.setItem("gmc-percentile", pct);
+  localStorage.setItem("gmc-category", JSON.stringify(selCats));
+}
+
+function switchScoreTab(tab){
+  activeScoreTab = tab;
+  document.querySelectorAll(".stab").forEach(b => b.classList.toggle("active", b.dataset.panel === tab));
+  document.querySelectorAll(".spanel").forEach(p => p.classList.toggle("active", p.id === `spanel-${tab}`));
+}
+
+/* ═══════════════════════════════════════
+   MULTI-CATEGORY ROWS
+═══════════════════════════════════════ */
+function renderCatRows(){
+  const container = document.getElementById("cat-rows");
+  if(!container) return;
+  container.innerHTML = "";
+  const multi = selCats.length > 1;
+
+  selCats.forEach((cat, idx) => {
+    const row = document.createElement("div");
+    row.className = "cat-row" + (multi ? " compact" : "");
+
+    const wrap = document.createElement("div");
+    wrap.className = "cat-wrap";
+
+    const sel = document.createElement("select");
+    sel.id = `f-cat-${idx}`;
+    sel.style.display = "none";
+    
+    const used = selCats.filter((_, i) => i !== idx).map(c => c.value);
+    
+    CAT_OPTS.forEach(opt => {
+      const o = document.createElement("option");
+      o.value = opt.value; 
+      o.textContent = opt.label;
+      if(opt.value === cat.value) o.selected = true;
+      if(used.includes(opt.value)) o.disabled = true;
+      sel.appendChild(o);
+    });
+
+    sel.addEventListener("change", () => {
+      const ch = CAT_OPTS.find(o => o.value === sel.value);
+      selCats[idx] = { value: sel.value, label: ch?.label || sel.value };
+      renderCatRows(); 
+      checkMinSub();
+    });
+
+    wrap.appendChild(sel);
+    mkGlassSelEl(sel, wrap, "Select category");
+    row.appendChild(wrap);
+
+    if(idx === selCats.length - 1 && selCats.length < 3){
+      const a = document.createElement("button");
+      a.type = "button"; a.className = "cat-add"; a.innerHTML = "+"; a.title = "Add another category";
+      a.onclick = addCat; 
+      row.appendChild(a);
+    }
+    if(selCats.length > 1){
+      const r = document.createElement("button");
+      r.type = "button"; r.className = "cat-rm"; r.innerHTML = "✕";
+      r.onclick = () => rmCat(idx); 
+      row.appendChild(r);
+    }
+    container.appendChild(row);
+  });
+  checkMinSub();
+}
+
+function addCat(){
+  if(selCats.length >= 3) return;
+  const used = selCats.map(c => c.value);
+  const next = CAT_OPTS.find(o => !used.includes(o.value));
+  if(next) selCats.push({value: next.value, label: next.label});
+  renderCatRows();
+}
+
+function rmCat(idx){ 
+    selCats.splice(idx, 1); 
+    renderCatRows(); 
+}
+
+function checkMinSub(){
+  const hasM = selCats.some(c => MIN_CATS.includes(c.value));
+  const wrap = document.getElementById("min-sub-wrap");
+  if(!wrap) return;
+  
+  if(hasM){
+    wrap.classList.add("open");
+    const gl = document.getElementById("min-sub-gl");
+    if(gl && !gl.querySelector(".gtrig")) mkGlassSel("f-min-sub", "min-sub-gl", "— Select sub-category —");
+  } else { 
+    wrap.classList.remove("open"); 
+  }
+}
+
+/* ═══════════════════════════════════════
+   GLASS SELECT BUILDER
+═══════════════════════════════════════ */
+function mkGlassSel(selId, wrapId, ph){
+  const sel = document.getElementById(selId);
+  const wrap = document.getElementById(wrapId);
+  if(!sel || !wrap) return;
+  mkGlassSelEl(sel, wrap, ph);
+}
+
+function mkGlassSelEl(sel, wrap, ph){
+  if(wrap.querySelector(".gtrig")) return;
+  
+  const trig = document.createElement("div");
+  trig.className = "gtrig";
+  trig.setAttribute("tabindex", "0");
+  
+  const txt = document.createElement("span");
+  txt.className = "truncate pr-2 flex-1";
+  
+  const init = sel.options[sel.selectedIndex];
+  txt.textContent = (init && init.value) ? init.text : (ph || "Select…");
+  
+  trig.appendChild(txt);
+  trig.insertAdjacentHTML("beforeend", "<svg class='w-4 h-4 shrink-0' style='opacity:.45' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'/></svg>");
+
+  const drop = document.createElement("div");
+  drop.className = "gdrop hidden fixed rounded-2xl shadow-2xl overflow-y-auto sb z-[9999] p-1.5";
+  drop.style.maxHeight = "280px";
+  drop.setAttribute("data-ddrop", "1");
+
+  function buildOpts(){
+    drop.innerHTML = "";
+    Array.from(sel.options).forEach(opt => {
+      if(!opt.value && ph) return;
+      const item = document.createElement("div");
+      item.className = "gopt" + (opt.selected ? " sel" : "") + (opt.disabled ? " dis" : "");
+      item.textContent = opt.text;
+      item.onclick = e => {
+        e.stopPropagation();
+        if(opt.disabled) return;
+        sel.value = opt.value;
+        txt.textContent = opt.value ? opt.text : (ph || "Select…");
+        drop.classList.add("hidden");
+        drop.querySelectorAll(".gopt").forEach(c => c.classList.remove("sel"));
+        item.classList.add("sel");
+        sel.dispatchEvent(new Event("change"));
+      };
+      drop.appendChild(item);
+    });
+  }
+  buildOpts();
+
+  trig.onclick = e => {
+    e.stopPropagation();
+    buildOpts();
+    const hidden = drop.classList.contains("hidden");
+    document.querySelectorAll(".gdrop[data-ddrop]").forEach(d => d.classList.add("hidden"));
+    if(hidden){
+      const r = trig.getBoundingClientRect();
+      drop.style.top = (r.bottom + 6) + "px";
+      drop.style.left = r.left + "px";
+      drop.style.minWidth = r.width + "px";
+      drop.classList.remove("hidden");
+    }
+  };
+  
+  trig.onkeydown = e => { if(e.key === "Enter" || e.key === " ") trig.click(); };
+
+  document.body.appendChild(drop);
+  wrap.appendChild(trig);
+  
+  sel.addEventListener("change", () => {
+    const o = sel.options[sel.selectedIndex];
+    if(o) txt.textContent = o.value ? o.text : (ph || "Select…");
+  });
+}
+
+/* ═══════════════════════════════════════
+   BRANCH MULTI-SELECT
+═══════════════════════════════════════ */
+function toggleBrMenu(e){
+  if(e) e.stopPropagation();
+  const menu = document.getElementById("br-menu");
+  const trig = document.getElementById("br-trigger");
+  if(!menu || !trig) return;
+  
+  if(menu.classList.contains("hidden")){
+    const r = trig.getBoundingClientRect();
+    menu.style.top = (r.bottom + 6) + "px";
+    menu.style.left = r.left + "px";
+    menu.style.minWidth = r.width + "px";
+    menu.classList.remove("hidden");
+    trig.classList.add("open");
+  } else {
+      closeBrMenu();
+  }
+}
+
+function closeBrMenu(){
+  document.getElementById("br-menu")?.classList.add("hidden");
+  document.getElementById("br-trigger")?.classList.remove("open");
+}
+
+function toggleBr(val, e){
+  if(e) e.stopPropagation();
+  
+  if(val === "ALL"){
+    selBranches = [];
+    document.querySelectorAll("[id^='bch-']").forEach(c => c.checked = (c.id === "bch-ALL"));
+    updBrTrig(); 
+    return;
+  }
+  
+  document.getElementById("bch-ALL").checked = false;
+  
+  if(selBranches.includes(val)){
+    selBranches = selBranches.filter(b => b !== val);
+    const cb = document.getElementById("bch-" + val); 
+    if(cb) cb.checked = false;
+  } else {
+    if(selBranches.length >= 3){
+      swalErr("Max 3 Branches", "You can select at most 3 branches at once.");
+      const cb = document.getElementById("bch-" + val); 
+      if(cb) cb.checked = false; 
+      return;
+    }
+    selBranches.push(val);
+    const cb = document.getElementById("bch-" + val); 
+    if(cb) cb.checked = true;
+  }
+  
+  if(!selBranches.length) document.getElementById("bch-ALL").checked = true;
+  updBrTrig();
+}
+
+function updBrTrig(){
+  const span = document.getElementById("br-ttext");
+  if(!span) return;
+  if(!selBranches.length){
+      span.innerHTML = "All Branches";
+      return;
+  }
+  span.innerHTML = selBranches.map(b => `<span class="br-badge">${BRL[b] || b}</span>`).join(" ");
+}
+
+/* ═══════════════════════════════════════
+   CITY SEARCH
+═══════════════════════════════════════ */
+function initCity(){
+  const inp = document.getElementById("city-search");
+  const drop = document.getElementById("city-drop");
+  if(!inp || !drop) return;
+  
+  function render(){
+    const parts = inp.value.split(",");
+    const q = parts[parts.length - 1].trim().toLowerCase();
+    const already = parts.slice(0, -1).map(s => s.trim().toLowerCase());
+    const list = CITIES.filter(c => (!q || c.toLowerCase().includes(q)) && !already.includes(c.toLowerCase()));
+    drop.innerHTML = list.map(c => `<div class="city-item" onclick="pickCity('${c}')">${c}</div>`).join("");
+  }
+  
+  inp.addEventListener("focus", () => { render(); drop.classList.remove("hidden"); });
+  inp.addEventListener("input", () => { render(); drop.classList.remove("hidden"); });
+  document.addEventListener("click", e => {
+    if(!document.getElementById("city-wrap")?.contains(e.target)) drop.classList.add("hidden");
+  });
+  render();
+}
+
+function pickCity(val){
+  const h = document.getElementById("f-city");
+  const inp = document.getElementById("city-search");
+  if(!h || !inp) return;
+  
+  let cur = h.value ? h.value.split(",").map(s => s.trim()).filter(Boolean) : [];
+  if(!cur.map(c => c.toLowerCase()).includes(val.toLowerCase())) cur.push(val);
+  
+  h.value = cur.join(", ");
+  inp.value = cur.join(", ") + ", ";
+  document.getElementById("city-drop").classList.add("hidden");
+  inp.focus();
+}
+
+/* ═══════════════════════════════════════
+   ENGINE STATUS
+═══════════════════════════════════════ */
+async function checkEngine(){
+  const dot = document.getElementById("status-dot");
+  const lbl = document.getElementById("status-lbl");
+  if(!dot || !lbl) return;
+  
+  try{
+    const d = await(await fetch(`${API_BASE}/health`, {signal: AbortSignal.timeout(5000)})).json();
+    if(d.database?.ok){
+      dot.className = "w-2 h-2 rounded-full bg-green-500 animate-pulse";
+      lbl.textContent = `Engine Online · ${d.database.colleges_rows || 0} Branches · ${d.ai_advice === "gemini" ? "Gemini ✓" : "Rule-Based"}`;
+    } else {
+      dot.className = "w-2 h-2 rounded-full bg-orange-500 animate-pulse";
+      lbl.textContent = "DB Not Built";
+    }
+  } catch {
+    dot.className = "w-2 h-2 rounded-full bg-red-500 animate-pulse";
+    lbl.textContent = "Engine Offline";
+  }
+}
+
+/* ═══════════════════════════════════════
+   COLLECT & VALIDATE
+═══════════════════════════════════════ */
+function collect(){
+  return {
+    exam_date:    document.getElementById("f-examdate")?.value || "",
+    shift:        document.getElementById("f-shift")?.value || "",
+    percentile:   document.getElementById("f-percentile")?.value || "",
+    rank:         document.getElementById("f-rank")?.value || "",
+    marks:        document.getElementById("f-marks")?.value || "",
+    jee_pct:      document.getElementById("f-jee-pct")?.value || "",
+    jee_rank:     document.getElementById("f-jee-rank")?.value || "",
+    score_type:   activeScoreTab,
+    categories:   selCats.map(c => c.value),
+    category:     selCats[0]?.value || "OPEN",
+    minority_sub: document.getElementById("f-min-sub")?.value || "",
+    gender:       document.getElementById("f-gender")?.value || "Male",
+    branches:     selBranches.length ? selBranches : ["ALL"],
+    branch:       selBranches.length === 1 ? selBranches[0] : "ALL",
+    location:     document.getElementById("f-city")?.value || "",
+    sort:         currentSort,
+    want_placement: true
+  };
+}
+
+function validate(f){
+  if(f.score_type === "cet"){
+    if(!f.percentile && !f.rank && !f.marks) return "Enter your CET Percentile, Rank, or Marks.";
+    if(f.percentile){ const p = parseFloat(f.percentile); if(isNaN(p) || p < 0 || p > 100) return "Percentile must be 0–100."; }
+    if(f.marks){ const m = parseFloat(f.marks); if(isNaN(m) || m < 0 || m > 200) return "Marks must be 0–200."; }
+  } else {
+    if(!f.jee_pct && !f.jee_rank) return "Enter your JEE Percentile or Rank.";
+    if(f.jee_pct){ const p = parseFloat(f.jee_pct); if(isNaN(p) || p < 0 || p > 100) return "JEE Percentile must be 0–100."; }
+  }
+  return null;
+}
+
+function swalErr(t, msg){
+  if(typeof Swal !== "undefined") {
+      Swal.fire({icon: "warning", title: t, text: msg, customClass: {popup: "gs", confirmButton: "gs-ok"}});
+  } else {
+      alert(t + "\n" + msg);
+  }
+}
+
+/* ═══════════════════════════════════════
+   PAYWALL & GATEKEEPER MODALS
+═══════════════════════════════════════ */
+function showPaywall(title, desc, btnText) {
+    const titleEl = document.getElementById('paywall-title');
+    const descEl = document.getElementById('paywall-desc');
+    const btnEl = document.getElementById('paywall-btn-text');
+    
+    if (titleEl && title) titleEl.innerText = title;
+    if (descEl && desc) descEl.innerText = desc;
+    if (btnEl && btnText) btnEl.innerText = btnText;
+    
+    const bg = document.getElementById('paywall-modal-bg');
+    const card = document.getElementById('paywallCard');
+    if(bg && card) {
+        bg.classList.remove('hidden');
+        bg.classList.add('flex');
+        setTimeout(() => {
+            bg.classList.remove('opacity-0');
+            card.classList.remove('scale-95');
+        }, 10);
+    }
+}
+
+function closePaywall() {
+    const bg = document.getElementById('paywall-modal-bg');
+    const card = document.getElementById('paywallCard');
+    if(bg && card) {
+        bg.classList.add('opacity-0');
+        card.classList.add('scale-95');
+        setTimeout(() => {
+            bg.classList.add('hidden');
+            bg.classList.remove('flex');
+        }, 300);
+    }
+}
+
+/* ═══════════════════════════════════════
+   RUN PREDICTION
+═══════════════════════════════════════ */
+async function runPrediction(){
+  const form = collect();
+  const err = validate(form);
+  if(err){ swalErr("Hold on", err); return; }
+
+  // 1. MUST BE LOGGED IN
+  const userEmail = localStorage.getItem('gmc-user-email');
+  if(!userEmail) {
+      Swal.fire({
+          icon: 'warning', title: 'Login Required', text: 'Please login to access the PRO Predictor.',
+          customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+      });
+      const lm = document.getElementById('loginModal');
+      const lc = document.getElementById('loginCard');
+      if(lm && lc) {
+          lm.classList.remove('hidden');
+          lm.classList.add('flex');
+          setTimeout(() => {
+              lm.classList.remove('opacity-0');
+              lc.classList.remove('scale-95');
+          }, 10);
+      }
+      return;
+  }
+
+  // ── TOKEN GATE ──
+  const _email = localStorage.getItem('gmc-user-email');
+  const _marks = parseFloat(document.getElementById('f-percentile')?.value 
+                  || document.getElementById('f-marks')?.value || 0);
+                  
+  const _tok = await fetch(`${API_BASE}/use-token`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ email: _email, marks: _marks })
+  }).then(r=>r.json()).catch(()=>({allowed:false,reason:'SERVER_DOWN'}));
+
+  if (!_tok.allowed) {
+      if (_tok.reason === 'TOKENS_EMPTY') {
+          Swal.fire({
+              icon:'warning', title:'🔒 Predictions Locked',
+              html:`Your marks are locked at <b>${_tok.locked_marks || 'your previous score'}</b>.<br>Top up tokens to try a different score.`,
+              confirmButtonText:'Top Up →', showCancelButton:true, cancelButtonText:'Keep Browsing',
+              customClass:{popup:'gs', confirmButton:'gs-ok', cancelButton:'gs-cl'}
+          }).then(r=>{ if(r.isConfirmed) window.location.href='premium.html?topup=1'; });
+      } else if (_tok.reason === 'NOT_PRO') {
+          window.location.href = 'premium.html';
+      } else if (_tok.reason === 'SERVER_DOWN') {
+          swalErr("Server Error", "Could not verify tokens. Ensure the backend is running.");
+      }
+      return; // stop the prediction
+  }
+
+  // update badge after consuming token
+  localStorage.setItem('gmc-tokens-left', _tok.tokens_left ?? 0);
+  if (typeof updateTokenBadge === 'function') updateTokenBadge();
+
+  if (_tok.warning === 'MARKS_LOCKED') {
+      Swal.fire({toast:true,position:'top-end',icon:'info',
+          title:'Marks locked — showing saved results',showConfirmButton:false,timer:3000});
+  }
+
+  // 3. PROCEED WITH MATH
+  if(form.percentile) localStorage.setItem("gmc-percentile", form.percentile);
+  localStorage.setItem("gmc-category", JSON.stringify(selCats));
+
+  if(form.score_type === "jee"){
+    let jp = parseFloat(form.jee_pct || 0);
+    if(!jp && form.jee_rank){ 
+        const r = parseFloat(form.jee_rank); 
+        jp = Math.max(1, Math.min(99.9, 100 * (1 - r / 1200000))); 
+    }
+    form.percentile = String(Math.min(99.9, jp * 0.95 + 5).toFixed(4));
+    form.rank = ""; 
+    form.marks = "";
+  }
+
+  showView("v-loading"); 
+  cycleMsgs(); 
+  PLACEMENTS = [];
+
+  const cats = form.categories;
+  const brs = form.branches;
+  const tasks = [];
+  
+  // Parallel Fetch for Cross-Branch & Category checking
+  cats.forEach((cat, cIdx) => brs.forEach((br, bIdx) => {
+    let finalCat = cat;
+    if (MIN_CATS.includes(cat) && form.minority_sub) {
+        finalCat = form.minority_sub;
+    }
+
+    // DDoS Protection: Only ping Gemini once!
+    const isPrimaryQuery = (cIdx === 0 && bIdx === 0);
+
+    // Find this section inside tasks.push( ... )
+    const payload = {
+        ...form,
+        category: finalCat,
+        branch: br === "ALL" ? "ALL" : br,
+        want_placement: isPrimaryQuery,
+        want_advice: isPrimaryQuery,
+        email: userEmail  // 🚨 RED TEAM FIX: Pass the email so the backend knows who is knocking
+    };
+    tasks.push(
+      fetch(`${API_BASE}/predict-college`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(50000)
+      })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+      .then(d => ({cat: finalCat, br, data: d}))
+      .catch(e => ({cat: finalCat, br, data: {result: "error", error: e.message}}))
+    );
+  }));
+
+  let results;
+  try { 
+      results = await Promise.all(tasks); 
+  } catch(e) {
+      showView("v-form"); 
+      swalErr("Engine Not Responding", "Run python backend.py and ensure it's at " + API_BASE); 
+      return;
+  }
+
+  const ok = results.filter(r => r.data.result === "success");
+  if(!ok.length) {
+      showView("v-form"); 
+      swalErr("Prediction Failed", results[0]?.data?.error || "Unknown error."); 
+      return;
+  }
+
+  ALL_BY_CAT = {}; 
+  META_BY_CAT = {};
+  let gAdvice = "", gSrc = "";
+  
+  ok.forEach(({cat, data}) => {
+    if(!ALL_BY_CAT[cat]) { 
+        ALL_BY_CAT[cat] = []; 
+        META_BY_CAT[cat] = data.meta || {}; 
+    }
+    const ex = new Set(ALL_BY_CAT[cat].map(m => m.choice_code));
+    
+    (data.matches || []).forEach(m => {
+        if(!ex.has(m.choice_code)) {
+            ALL_BY_CAT[cat].push(m); 
+            ex.add(m.choice_code);
+        }
+    });
+    
+    if(!gAdvice && data.ai_advice) gAdvice = data.ai_advice;
+    if(!gSrc && data.ai_source) gSrc = data.ai_source;
+    if(!PLACEMENTS.length && (data.placements || []).length) PLACEMENTS = data.placements;
+  });
+
+  activeCatTab = 0;
+  const firstCat = ok[0].cat;
+  ALL_MATCHES = ALL_BY_CAT[firstCat] || [];
+  META = META_BY_CAT[firstCat] || {};
+  
+  renderResults({ai_advice: gAdvice, ai_source: gSrc});
+  // RED TEAM FIX: Disable branch filters that weren't fetched
+  document.querySelectorAll(".f-chip[data-bf]").forEach(btn => {
+      const bfVal = btn.dataset.bf;
+      if (bfVal !== "ALL" && selBranches.length && !selBranches.includes("ALL") && !selBranches.includes(bfVal)) {
+          btn.style.display = "none"; // Hide buttons for branches we didn't search
+      } else {
+          btn.style.display = "inline-block";
+      }
+  });
+  showView("v-results");
+}
+function cycleMsgs(){
+  const msgs = [
+    "Normalising shift difficulty…",
+    "Reading 2022–2025 cutoff history…",
+    "Projecting trend velocity…",
+    "Running parallel category analysis…",
+    "Scoring Safe / Moderate / Reach…",
+    "Fetching Gemini placement insights…",
+    "Applying minority seat adjustments…"
+  ];
+  let i = 0;
+  const el = document.getElementById("load-msg");
+  if(!el) return;
+  
+  const t = setInterval(() => { 
+    if(document.getElementById("v-loading")?.classList.contains("off")){
+        clearInterval(t);
+        return;
+    } 
+    el.textContent = msgs[i % msgs.length];
+    i++; 
+  }, 2400);
+}
+
+/* ═══════════════════════════════════════
+   RENDER RESULTS
+═══════════════════════════════════════ */
+function renderResults(data){
+  updMetaLine();
+  const ai = document.getElementById("ai-advice"); 
+  if(ai) ai.textContent = data.ai_advice || "—";
+  
+  const src = document.getElementById("ai-src"); 
+  if(src) src.textContent = data.ai_source === "gemini" ? "Gemini AI" : "Rule-Based";
+  
+  buildCatTabs();
+  renderPlacements();
+  renderColleges();
+}
+
+function updMetaLine(){
+  const m = META, b = m.buckets || {};
+  const el = document.getElementById("meta-line");
+  if(el && m.raw_percentile !== undefined) {
+      el.textContent = `Raw ${m.raw_percentile}%ile → Norm ${m.normalised_percentile}%ile (shift ${m.shift_correction >= 0 ? "+" : ""}${m.shift_correction}) · ${m.category} · Safe ${b.Safe || 0} Mod ${b.Moderate || 0} Reach ${b.Reach || 0}`;
+  }
+}
+
+function buildCatTabs(){
+  const wrap = document.getElementById("cat-tabs-wrap");
+  if(!wrap) return;
+  
+  if(selCats.length < 2) {
+      wrap.classList.remove("show"); 
+      wrap.innerHTML = ""; 
+      return;
+  }
+  
+  wrap.classList.add("show");
+  wrap.innerHTML = selCats.map((c, i) => {
+    const ms = ALL_BY_CAT[c.value] || []; 
+    const safe = ms.filter(x => x.risk === "Safe").length;
+    return `<button class="cat-tab${i === activeCatTab ? " active" : ""}" onclick="switchCatTab(${i})">${c.label} <span style="opacity:.55;font-size:10px;">(${ms.length} · ✅${safe})</span></button>`;
+  }).join("");
+}
+
+function switchCatTab(idx){
+  activeCatTab = idx;
+  const cat = selCats[idx];
+  ALL_MATCHES = ALL_BY_CAT[cat.value] || [];
+  META = META_BY_CAT[cat.value] || {};
+  buildCatTabs(); 
+  updMetaLine(); 
+  renderColleges();
+}
+
+/* ─── Placements ─── */
+function renderPlacements(){
+  const sec = document.getElementById("pl-sec"); 
+  const wrap = document.getElementById("pl-cards");
+  if(!sec || !wrap) return;
+  
+  if(!PLACEMENTS.length) {
+      sec.classList.add("hidden"); 
+      return;
+  }
+  
+  sec.classList.remove("hidden"); 
+  wrap.innerHTML = "";
+  
+  const e = s => String(s || "").replace(/[<>&"']/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+  
+  PLACEMENTS.forEach((p, i) => {
+    const rec = (p.top_recruiters || []).slice(0, 3).join(" · ") || "—";
+    wrap.insertAdjacentHTML("beforeend", `
+      <div class="card rounded-2xl p-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="w-6 h-6 rounded-full flex items-center justify-center font-black text-xs shrink-0" style="background:rgba(124,58,237,.1);color:#6d28d9;">${i + 1}</span>
+          <span class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background:rgba(22,163,74,.1);color:#16a34a;">${e(p.avg_package) || "N/A"}</span>
+        </div>
+        <p class="font-black text-xs leading-tight mb-0.5">${e(p.college)}</p>
+        <p class="text-[10px] font-bold text-gray-500 mb-2">${e(p.branch)}</p>
+        <p class="text-[11px] font-semibold text-gray-600 dark:text-gray-300 leading-snug mb-2">${e(p.summary)}</p>
+        <p class="text-[10px] font-bold truncate" style="color:#7c3aed;">🏢 ${e(rec)}</p>
+      </div>`);
+  });
+}
+
+/* ─── College cards ─── */
+const BF_KW = {
+    CSE:["computer"], IT:["information technology"], AIDS:["artificial intelligence","data science"],
+    AIML:["machine learning"], ENTC:["electronics and telecom","e&tc","entc"], ECE:["electronics"],
+    EE:["electrical"], ME:["mechanical"], CIVIL:["civil"], CHEM:["chemical"], ROBO:["robotics"]
+};
+
+function matchBF(bn){ 
+    if(currentBF === "ALL") return true; 
+    const kw = BF_KW[currentBF] || [currentBF.toLowerCase()]; 
+    return kw.some(k => bn.toLowerCase().includes(k)); 
+}
+
+function getVisible(){
+  let list = ALL_MATCHES.slice();
+  if(currentFilter === "Location") list = list.filter(m => m.location_match === true);
+  else if(currentFilter !== "ALL") list = list.filter(m => m.risk === currentFilter);
+  
+  if(currentBF !== "ALL") list = list.filter(m => matchBF(m.branch));
+  if(searchTerm) list = list.filter(m => (m.college + " " + m.branch).toLowerCase().includes(searchTerm));
+  
+  if(currentSort === "chance") list.sort((a,b) => b.chance - a.chance || b.cutoff - a.cutoff);
+  else if(currentSort === "rank") list.sort((a,b) => b.cutoff - a.cutoff);
+  else list.sort((a,b) => a.cutoff - b.cutoff);
+  
+  return list.slice(0, 300);
+}
+
+function initials(name){ 
+    return (name || "?").split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join(""); 
+}
+
+const AV = [
+    ["rgba(124,58,237,.12)","#6d28d9"], ["rgba(59,130,246,.12)","#2563eb"], 
+    ["rgba(16,185,129,.12)","#059669"], ["rgba(245,158,11,.12)","#d97706"], 
+    ["rgba(239,68,68,.12)","#dc2626"], ["rgba(6,182,212,.12)","#0891b2"]
+];
+
+function renderColleges(){
+  const con = document.getElementById("college-list"); 
+  if(!con) return;
+  const list = getVisible();
+  const rc = document.getElementById("result-count");
+  if(rc) rc.textContent = `${list.length} college${list.length !== 1 ? "s" : ""} shown`;
+  
+  con.innerHTML = "";
+  if(!list.length){
+      con.innerHTML = `<div class="p-8 text-center font-bold text-gray-400 text-sm">No colleges match this filter.</div>`;
+      return;
+  }
+  
+  const e = s => String(s || "").replace(/[<>&"']/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+  
+  list.forEach(m => {
+    const inF = capList.some(c => c.code === m.choice_code);
+    const rC = m.risk === "Safe" ? "c-safe" : m.risk === "Moderate" ? "c-moderate" : "c-reach";
+    const rBg = m.risk === "Safe" ? "rgba(22,163,74,.1)" : m.risk === "Moderate" ? "rgba(217,119,6,.1)" : "rgba(220,38,38,.1)";
+    const rCl = m.risk === "Safe" ? "#16a34a" : m.risk === "Moderate" ? "#d97706" : "#dc2626";
+    const ti = m.trend === "rising" ? "📈" : m.trend === "falling" ? "📉" : "➡️";
+    const av = AV[(m.college.charCodeAt(0) || 0) % AV.length];
+    
+    con.insertAdjacentHTML("beforeend", `
+      <div class="college-card card flex items-center gap-3" onclick="toggleForm('${m.choice_code}',${!inF})">
+        <div class="shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm select-none" style="background:${av[0]};color:${av[1]}">${initials(m.college)}</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5 mb-0.5 flex-wrap">
+            <span class="text-[10px] font-black px-2 py-0.5 rounded-full" style="background:${rBg};color:${rCl}">${m.risk}</span>
+            <span class="text-[10px] font-bold text-gray-500">${ti} ${m.trend}</span>
+            ${m.minority_branch ? '<span class="text-[10px] font-bold" style="color:#7c3aed;">🏛 Minority</span>' : ""}
+          </div>
+          <h4 class="font-black text-sm leading-tight truncate" title="${e(m.college)}">${e(m.college)}</h4>
+          <p class="text-[11px] font-semibold text-gray-500 truncate">${e(m.branch)}</p>
+          <div class="flex items-center gap-2 mt-1 flex-wrap">
+            <span class="text-[10px] font-black" style="color:${rCl}">${m.chance}% chance</span>
+            <span class="text-[10px] text-gray-400">·</span>
+            <span class="text-[10px] font-bold text-gray-500">Cutoff ${m.cutoff}%ile</span>
+            <span class="text-[10px] text-gray-400">·</span>
+            <span class="text-[10px] font-bold text-gray-500">Intake ${m.intake || "—"}</span>
+          </div>
+        </div>
+        <div class="cbox ${rC} ${inF ? "checked" : ""} shrink-0" id="cb-${m.choice_code}">
+          <svg viewBox="0 0 14 14" fill="none"><polyline points="2,7 5.5,10.5 12,3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>`);
+  });
+}
+
+/* ─── Ribbon ─── */
+function bindRibbon(){
+  document.querySelectorAll(".s-pill").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll(".s-pill").forEach(b => b.classList.remove("on"));
+    btn.classList.add("on"); 
+    currentSort = btn.dataset.sort; 
+    renderColleges();
+  }));
+  
+  document.querySelectorAll(".f-chip[data-filter]").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll(".f-chip[data-filter]").forEach(b => b.classList.remove("on"));
+    btn.classList.add("on"); 
+    currentFilter = btn.dataset.filter; 
+    renderColleges();
+  }));
+  
+  document.querySelectorAll(".f-chip[data-bf]").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll(".f-chip[data-bf]").forEach(b => b.classList.remove("on"));
+    btn.classList.add("on"); 
+    currentBF = btn.dataset.bf; 
+    renderColleges();
+  }));
+  
+  const sb = document.getElementById("search-box");
+  if(sb) sb.addEventListener("input", e => {
+      searchTerm = e.target.value.trim().toLowerCase();
+      renderColleges();
+  });
+}
+
+function selectAllVisible(){ 
+    getVisible().forEach(m => {
+        if(!capList.some(c => c.code === m.choice_code)) capList.push(toEntry(m));
+    }); 
+    renderColleges(); 
+    renderCAP(); 
+}
+
+/* ═══════════════════════════════════════
+   OPTION FORM
+═══════════════════════════════════════ */
+function toEntry(m){ return {code: m.choice_code, name: m.college, branch: m.branch, cutoff: m.cutoff, chance: m.chance, risk: m.risk}; }
+
+function syncEmpty(){
+  const empty = document.getElementById("empty-state"); 
+  const cnt = document.getElementById("cap-count"); 
+  const n = capList.length;
+  if(cnt) cnt.textContent = n; 
+  if(empty) empty.style.display = n === 0 ? "flex" : "none";
+  ["btn-pdf", "btn-csv"].forEach(id => {
+      const b = document.getElementById(id);
+      if(b) b.style.opacity = n === 0 ? "0.4" : "1";
+  });
+}
+
+function toggleForm(code, add){
+  const m = ALL_MATCHES.find(x => x.choice_code === code); 
+  if(!m) return;
+  const idx = capList.findIndex(c => c.code === code);
+  
+  if(add && idx === -1) capList.push(toEntry(m));
+  if(!add && idx > -1) capList.splice(idx, 1);
+  saveCAP();
+  renderCAP();
+  
+  const cb = document.getElementById(`cb-${code}`);
+  if(cb) {
+      const rC = m.risk === "Safe" ? "c-safe" : m.risk === "Moderate" ? "c-moderate" : "c-reach";
+      cb.className = `cbox ${rC} ${add ? "checked" : ""} shrink-0`;
+  }
+}
+
+function removeFromCAP(code){
+  const i = capList.findIndex(c => c.code === code); 
+  if(i > -1) capList.splice(i, 1);
+  saveCAP();
+  renderCAP(); 
+  const cb = document.getElementById(`cb-${code}`); 
+  if(cb) cb.classList.remove("checked");
+}
+
+function moveCAP(code, dir){
+  const i = capList.findIndex(c => c.code === code); 
+  const j = i + dir;
+  if(i < 0 || j < 0 || j >= capList.length) return;
+  [capList[i], capList[j]] = [capList[j], capList[i]]; 
+  saveCAP();
+  renderCAP();
+}
+
+function renderCAP(){
+  const list = document.getElementById("selected-list"); 
+  if(!list) return;
+  list.innerHTML = "";
+  
+  const e = s => String(s || "").replace(/[<>&"']/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+  
+  capList.forEach((c, i) => {
+    const cl = c.risk === "Safe" ? "#16a34a" : c.risk === "Moderate" ? "#d97706" : "#dc2626";
+    list.insertAdjacentHTML("beforeend", `
+      <div class="card rounded-xl p-3 flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-full flex items-center justify-center font-black text-[11px] shrink-0" style="background:rgba(124,58,237,.1);color:#6d28d9;">${i + 1}</div>
+        <div class="flex-1 min-w-0">
+          <p class="font-black text-[11px] truncate" title="${e(c.name)}">${e(c.name)}</p>
+          <p class="text-[10px] font-semibold text-gray-500 truncate mt-0.5">${e(c.branch)} · <span style="color:${cl}">${c.chance}%</span> · ${c.code}</p>
+        </div>
+        <div class="flex items-center gap-0.5 shrink-0">
+          <button onclick="event.stopPropagation();moveCAP('${c.code}',-1)" class="w-7 h-7 rounded-lg card font-black text-xs hover:opacity-70 transition">▲</button>
+          <button onclick="event.stopPropagation();moveCAP('${c.code}',1)"  class="w-7 h-7 rounded-lg card font-black text-xs hover:opacity-70 transition">▼</button>
+          <button onclick="event.stopPropagation();removeFromCAP('${c.code}')" class="w-7 h-7 rounded-lg font-black text-xs hover:opacity-70 transition" style="background:rgba(220,38,38,.1);color:#dc2626;">✕</button>
+        </div>
+      </div>`);
+  });
+  syncEmpty();
+}
+
+/* ═══════════════════════════════════════
+   PDF
+═══════════════════════════════════════ */
+function downloadCAPForm(){
+  if(!capList.length){ swalErr("Empty Form", "Tick at least one college first."); return; }
+  
+  const JSPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+  if(!JSPDF){ swalErr("PDF Error", "jsPDF not found. Refresh the page."); return; }
+  
+  const doc = new JSPDF({unit: "pt", format: "a4"});
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight();
+  let y = 56;
+  
+  doc.setFont("times", "bold"); doc.setFontSize(16);
+  doc.text("Government of Maharashtra", W/2, y, {align: "center"}); y += 20;
+  doc.setFontSize(12.5); doc.text("State Common Entrance Test Cell", W/2, y, {align: "center"}); y += 22;
+  doc.setFontSize(11); doc.text("Option Form — First Year Engineering / Technology", W/2, y, {align: "center"}); y += 14;
+  
+  doc.setFont("times", "normal"); doc.setFontSize(8.5);
+  doc.text("Generated by Guess My College · " + new Date().toLocaleDateString("en-IN"), W/2, y, {align: "center"}); y += 10;
+  
+  doc.setFont("times", "italic"); doc.setFontSize(8); doc.setTextColor(160, 80, 0);
+  doc.text("⚠ GMC Disclaimer: AI-estimated list. Always verify on mhtcet2025.mahacet.org before submitting.", W/2, y + 8, {align: "center"});
+  doc.setTextColor(0, 0, 0); y += 26;
+  
+  const cols = [{t: "Pref.", w: 42}, {t: "Choice Code", w: 92}, {t: "Institute Name", w: 248}, {t: "Course Name", w: 133}];
+  const tW = cols.reduce((s, c) => s + c.w, 0), x0 = (W - tW) / 2, LH = 11, P = 5;
+  
+  function drawRow(cells, top, isH){
+    doc.setFont("times", isH ? "bold" : "normal"); 
+    doc.setFontSize(isH ? 9.5 : 9);
+    const wr = cells.map((t, i) => doc.splitTextToSize(String(t), cols[i].w - P*2));
+    const ml = Math.max(...wr.map(w => w.length)); 
+    const h = ml * LH + P * 2;
+    if(isH) { doc.setFillColor(228, 218, 252); doc.rect(x0, top, tW, h, "F"); }
+    
+    let x = x0;
+    wr.forEach((la, i) => {
+        doc.rect(x, top, cols[i].w, h);
+        doc.text(la, x + P, top + P + 8);
+        x += cols[i].w;
+    });
+    return h;
+  }
+  
+  y += drawRow(cols.map(c => c.t), y, true);
+  
+  for(let i = 0; i < capList.length; i++){
+    const c = capList[i];
+    const nl = doc.splitTextToSize(c.name, cols[2].w - P*2).length;
+    const need = nl * LH + P * 2;
+    if(y + need > H - 56){
+        doc.addPage();
+        y = 50;
+        y += drawRow(cols.map(cc => cc.t), y, true);
+    }
+    y += drawRow([i + 1, c.code, c.name, c.branch], y, false);
+  }
+  
+  y += 16; 
+  doc.setFont("times", "italic"); doc.setFontSize(8);
+  doc.text("Note: AI-estimated planning list. GMC can make errors. Verify on official portals.", x0, y);
+  doc.save("My_MHTCET_Option_Form.pdf");
+}
+
+/* ═══════════════════════════════════════
+   CSV
+═══════════════════════════════════════ */
+function downloadCSV(){
+  if(!capList.length){ swalErr("Empty Form", "Tick at least one college first."); return; }
+  
+  let csv = "Preference,Choice Code,Institute Name,Course Name,Projected Cutoff (%ile),Chance (%)\n";
+  capList.forEach((c, i) => {
+      csv += `${i + 1},${c.code},"${c.name.replace(/"/g, '""')}","${c.branch.replace(/"/g, '""')}",${c.cutoff},${c.chance}\n`;
+  });
+  
+  const blob = new Blob([csv], {type: "text/csv;charset=utf-8;"});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a"); 
+  link.href = url; 
+  link.download = "My_MHTCET_Option_Form.csv";
+  
+  document.body.appendChild(link); 
+  link.click(); 
+  document.body.removeChild(link);
+}
+
+/* ═══════════════════════════════════════
+   PAYMENT
+═══════════════════════════════════════ */
+function bookCounselling(){
+  if(typeof Swal !== "undefined"){
+    Swal.fire({
+      icon: "question", title: "Book Expert Counselling?",
+      html: "A mentor reviews your option form &amp; CAP strategy personally.<br><br><b>Fee: ₹899</b>",
+      showCancelButton: true, confirmButtonText: "Proceed to Pay", cancelButtonText: "Maybe Later",
+      customClass: {popup: "gs", confirmButton: "gs-ok", cancelButton: "gs-cl"}
+    }).then(r => { if(r.isConfirmed) startPayment(); });
+  }
+}
+
+async function startPayment(){
+  try{
+    const d = await(await fetch(`${API_BASE}/create-payment-order`, {method: "POST"})).json();
+    if(d.result !== "success"){ swalErr("Payments Unavailable", d.error || "Try again."); return; }
+    
+    if(typeof Swal !== "undefined") {
+        Swal.fire({
+            icon: "success", title: "Order Created",
+            html: `Order <b>${d.order_id}</b> · ₹${(d.amount/100).toFixed(0)}<br><small>Add Razorpay checkout script to complete.</small>`,
+            customClass: {popup: "gs", confirmButton: "gs-ok"}
+        });
+    }
+  } catch {
+      swalErr("Payment Error", "Could not reach the payment server.");
+  }
+}
+
+
+</script>
+</body>
+</html>

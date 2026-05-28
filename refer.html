@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <script src="global.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refer & Earn | Guess My College</title>
+    <link rel="icon" href="bin/logo_rounded.png" type="image/png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const _t = localStorage.getItem('gmc-theme') || 'dark';
+        document.documentElement.classList.toggle('dark', _t !== 'light');
+        tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'] } } } }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        @keyframes hue-shift { 0%,100%{filter:hue-rotate(0deg)} 50%{filter:hue-rotate(90deg)} }
+        .gemini-bg { animation: hue-shift 20s infinite ease-in-out; }
+        .glass {
+            background: rgba(255,255,255,0.7); backdrop-filter: blur(30px) saturate(150%);
+            border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 12px 40px rgba(0,0,0,0.05);
+        }
+        .dark .glass {
+            background: rgba(15,15,22,0.8); border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        }
+        body { background:#f0f4f8; transition: background .3s, color .3s; }
+        .dark body { background:#050508; }
+        
+        /* Fintech Glow Cards */
+        .wallet-card {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            box-shadow: 0 0 40px rgba(124, 58, 237, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-swal { background:rgba(18,18,26,0.95)!important; backdrop-filter:blur(20px)!important; border:1px solid rgba(255,255,255,0.1)!important; border-radius:2rem!important; color:#fff!important; }
+        html:not(.dark) .glass-swal { background:rgba(255,255,255,0.95)!important; color:#000!important; }
+        .glass-swal-confirm { background:#a855f7!important; border-radius:1rem!important; font-weight:800!important; }
+        @keyframes popIn { from{opacity:0;transform:translateY(20px) scale(.95)} to{opacity:1;transform:none} }
+        .pop-in { animation: popIn .5s cubic-bezier(.16,1,.3,1) both; }
+    </style>
+</head>
+<body class="min-h-[100dvh] font-sans text-gray-900 dark:text-white overflow-x-hidden pb-10">
+
+<div class="fixed inset-0 z-0 pointer-events-none gemini-bg">
+    <div class="absolute top-[-15%] left-[-15%] w-[65vw] h-[65vw] rounded-full blur-[130px] opacity-25 dark:opacity-20 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-purple-600 to-pink-500 animate-[spin_18s_linear_infinite]"></div>
+    <div class="absolute bottom-[-10%] right-[-15%] w-[55vw] h-[55vw] rounded-full blur-[130px] opacity-25 dark:opacity-20 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-blue-600 to-cyan-400 animate-[spin_22s_linear_infinite_reverse]"></div>
+</div>
+
+<div class="relative z-10 max-w-xl mx-auto px-4 py-8">
+
+    <div class="flex items-center justify-between mb-6">
+        <button onclick="window.history.back()" class="flex items-center gap-2 text-sm font-black text-gray-500 hover:text-black dark:hover:text-white transition-colors glass px-4 py-2 rounded-full">
+            ← Back
+        </button>
+        <div class="glass px-4 py-2 rounded-full flex items-center gap-2">
+            <img id="ac-pic" src="" alt="Avatar" class="w-6 h-6 rounded-full border border-purple-500 object-cover" onerror="this.src='https://i.pravatar.cc/150?img=11'">
+            <span id="ac-name" class="text-xs font-black truncate max-w-[100px]">Student</span>
+        </div>
+    </div>
+
+    <div class="wallet-card rounded-[2.5rem] p-8 mb-6 pop-in text-white relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/30 blur-[40px] rounded-full pointer-events-none"></div>
+        <div class="absolute bottom-[-20%] left-[-10%] w-40 h-40 bg-blue-500/20 blur-[40px] rounded-full pointer-events-none"></div>
+        
+        <div class="relative z-10">
+            <div class="flex justify-between items-start mb-2">
+                <p class="text-sm font-bold text-purple-200 uppercase tracking-widest">Available Balance</p>
+                <span class="bg-green-500/20 text-green-300 border border-green-500/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span> Verified
+                </span>
+            </div>
+            
+            <div class="flex items-baseline gap-2 mb-6">
+                <span class="text-3xl font-black text-purple-300">₹</span>
+                <h1 id="wallet-balance" class="text-6xl md:text-7xl font-black tracking-tighter">0</h1>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-black/30 rounded-2xl p-4 border border-white/5">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Referrals</p>
+                    <p id="total-ref-count" class="text-2xl font-black">0</p>
+                </div>
+                <div class="bg-black/30 rounded-2xl p-4 border border-white/5">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Rate per Invite</p>
+                    <p class="text-2xl font-black text-green-400">₹50</p>
+                </div>
+            </div>
+
+            <button onclick="toggleRedeem()" class="w-full bg-white text-black hover:bg-gray-100 font-black text-base py-4 rounded-2xl shadow-[0_10px_20px_rgba(0,0,0,0.3)] active:scale-95 transition-transform flex items-center justify-center gap-2">
+                Withdraw to Bank <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </button>
+        </div>
+    </div>
+
+    <div id="redeem-section" class="hidden glass rounded-[2rem] p-6 mb-6 pop-in border border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.1)]">
+        <h3 class="text-lg font-black mb-2 flex items-center gap-2">🏦 Setup Withdrawal</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mb-4">Payouts are manually verified and processed via UPI within 24-48 hours to prevent fraud.</p>
+        
+        <label class="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Enter UPI ID</label>
+        <input id="upi-input" type="text" placeholder="yourname@okhdfcbank" class="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-4 text-base font-bold text-black dark:text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors mb-4">
+        
+        <button onclick="sendRedeemWA()" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black py-4 rounded-xl text-base active:scale-95 transition-all shadow-lg shadow-green-500/30">
+            Submit Claim Request
+        </button>
+    </div>
+
+    <div class="glass rounded-[2rem] p-6 mb-6 pop-in" style="animation-delay:.1s">
+        <div class="text-center mb-4">
+            <h3 class="text-base font-black">Invite Friends. Get Paid.</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Your friends get 20% OFF. You get ₹50 cash.</p>
+        </div>
+
+        <div class="bg-black/5 dark:bg-black/40 border border-black/10 dark:border-white/10 rounded-2xl p-5 mb-4 text-center relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <p class="text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-2">Your Referral Code</p>
+            <p id="refer-code-text" class="text-4xl md:text-5xl font-black tracking-[0.2em] text-black dark:text-white">——</p>
+        </div>
+
+        <div class="flex gap-3">
+            <button onclick="copyCode()" class="flex-1 bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-black dark:text-white font-black py-4 rounded-xl transition-colors text-sm flex justify-center items-center gap-2">
+                📋 Copy Code
+            </button>
+            <button onclick="shareWA()" class="flex-[2] flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1DA851] text-white font-black py-4 rounded-xl transition-all active:scale-95 shadow-lg shadow-green-500/20 text-sm">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.305-.885-.653-1.482-1.46-1.656-1.758-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+                Share via WhatsApp
+            </button>
+        </div>
+    </div>
+
+    <div class="glass rounded-[2rem] p-6 pop-in" style="animation-delay:.15s">
+        <h3 class="text-sm font-black uppercase tracking-widest text-gray-500 mb-5">How it Works</h3>
+        
+        <div class="space-y-6">
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center font-black text-blue-500 shrink-0 border border-blue-500/20">1</div>
+                <div>
+                    <h4 class="font-black text-sm mb-1">Share your Link</h4>
+                    <p class="text-xs text-gray-500 font-medium leading-relaxed">Send your WhatsApp invite link or code to friends in your college groups.</p>
+                </div>
+            </div>
+            
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center font-black text-purple-500 shrink-0 border border-purple-500/20">2</div>
+                <div>
+                    <h4 class="font-black text-sm mb-1">Friend Buys PRO</h4>
+                    <p class="text-xs text-gray-500 font-medium leading-relaxed">Your friend gets an instant 20% discount on the PRO Predictor using your code.</p>
+                </div>
+            </div>
+
+            <div class="flex items-start gap-4">
+                <div class="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center font-black text-green-500 shrink-0 border border-green-500/20">3</div>
+                <div>
+                    <h4 class="font-black text-sm mb-1">You Get Paid</h4>
+                    <p class="text-xs text-gray-500 font-medium leading-relaxed">The moment their payment is verified, ₹50 is added to your wallet. Withdraw to UPI anytime.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// ── boot ──────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', async () => {
+    if (!isLoggedIn()) { window.location.href = 'index.html?login=1'; return; }
+    await refreshUserState();
+    renderPage();
+});
+
+function renderPage() {
+    const name    = localStorage.getItem('gmc-user-name')     || 'Student';
+    const pic     = localStorage.getItem('gmc-user-pic')      || 'https://i.pravatar.cc/150?img=11';
+    const code    = localStorage.getItem('gmc-refer-code')    || '——';
+    const count   = parseInt(localStorage.getItem('gmc-refer-count') || '0');
+    const balance = count * 50;
+
+    // Header Profile
+    document.getElementById('ac-pic').src    = pic;
+    document.getElementById('ac-name').textContent  = name;
+
+    // Wallet & Stats
+    document.getElementById('refer-code-text').textContent = code;
+    document.getElementById('total-ref-count').textContent = count;
+    
+    // Animate Balance counting up
+    animateValue("wallet-balance", 0, balance, 1000);
+}
+
+// Number Counter Animation
+function animateValue(id, start, end, duration) {
+    if (start === end) { document.getElementById(id).innerHTML = end; return; }
+    let obj = document.getElementById(id);
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        obj.innerHTML = Math.floor(progress * (end - start) + start);
+        if (progress < 1) { window.requestAnimationFrame(step); }
+    };
+    window.requestAnimationFrame(step);
+}
+
+// ── Copy code ──────────────────────────────────
+function copyCode() {
+    const code = localStorage.getItem('gmc-refer-code') || '';
+    if (!code) return;
+    // Create the full auto-apply link
+    const link = `https://guessmycollege.in/?ref=${code}`;
+    navigator.clipboard.writeText(link).then(() => {
+        Swal.fire({ toast:true, position:'top-end', icon:'success',
+            title:'Invite Link Copied! 🔗', text: 'Send it to your friends.', showConfirmButton:false, timer:2000, customClass: {popup: 'glass-swal'} });
+    });
+}
+
+// ── Share WhatsApp ──────────────────────────────
+function shareWA() {
+    const code = localStorage.getItem('gmc-refer-code') || '';
+    const link = `https://guessmycollege.in/?ref=${code}`;
+    const msg  = encodeURIComponent(
+        `Bro! Use my invite link to get 20% OFF on Guess My College PRO Predictor 🎓\n\nClick here to auto-apply discount:\n${link}\n\nLet's crack admissions together! 💪`
+    );
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+// ── Redeem logic ───────────────────────────
+function toggleRedeem() {
+    const section = document.getElementById('redeem-section');
+    if (section.classList.contains('hidden')) {
+        section.classList.remove('hidden');
+        // scroll to it
+        setTimeout(() => section.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    } else {
+        section.classList.add('hidden');
+    }
+}
+
+function sendRedeemWA() {
+    const count = parseInt(localStorage.getItem('gmc-refer-count') || '0');
+    if (count < 1) {
+        Swal.fire({ icon:'warning', title:'Wallet Empty', text:'You need at least 1 successful referral (₹50) to withdraw.', customClass: {popup:'glass-swal', confirmButton:'glass-swal-confirm'} });
+        return;
+    }
+    const upi = (document.getElementById('upi-input')?.value || '').trim();
+    if (!upi || !/^[\w.\-]+@[\w]+$/.test(upi)) {
+        Swal.fire({ icon:'error', title:'Invalid UPI', text:'Enter a valid UPI ID first.', customClass: {popup:'glass-swal', confirmButton:'glass-swal-confirm'} });
+        return;
+    }
+    
+    const balance = count * 50;
+    const name  = localStorage.getItem('gmc-user-name')  || '';
+    const email = localStorage.getItem('gmc-user-email') || '';
+    const code  = localStorage.getItem('gmc-refer-code') || '';
+    
+    const msg = encodeURIComponent(
+`🏦 *GMC WITHDRAWAL REQUEST*
+
+*Name:* ${name}
+*Email:* ${email}
+*Referral Code:* ${code}
+*Total Referrals:* ${count}
+*Amount Claimed:* ₹${balance}
+*Payout UPI ID:* ${upi}
+
+Please verify and process.`
+    );
+    window.open(`https://wa.me/919405615136?text=${msg}`, '_blank');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+    <script src="global.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlock PRO | Guess My College</title>
+    <link rel="icon" href="bin/logo_rounded.png" type="image/png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <script>
+        // GLOBAL THEME SYNC LOGIC
+        const savedTheme = localStorage.getItem('gmc-theme') || 'dark';
+        if (savedTheme === 'light') { document.documentElement.classList.remove('dark'); } 
+        else { document.documentElement.classList.add('dark'); }
+
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'spin-slow': 'spin 15s linear infinite',
+                        'spin-reverse': 'spin-reverse 15s linear infinite',
+                        'draw-check': 'drawcheck 0.8s forwards',
+                        'pop-in': 'popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+                    },
+                    keyframes: {
+                        drawcheck: {
+                            '0%': { strokeDashoffset: '100', strokeDasharray: '100' },
+                            '100%': { strokeDashoffset: '0', strokeDasharray: '100' }
+                        },
+                        popIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.8) translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'scale(1) translateY(0)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        
+        body {
+            background-color: #f0f4f8; 
+            transition: background-color 0.3s ease, color 0.3s ease;
+            cursor: default;
+        }
+        .dark body {
+            background-color: #050508; 
+        }
+        
+        @keyframes hue-shift { 0% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(90deg); } 100% { filter: hue-rotate(0deg); } }
+        .gemini-bg { animation: hue-shift 20s infinite ease-in-out; }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #000;
+        }
+        .dark .glass-input {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+        .glass-input:focus {
+            outline: none; border-color: #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+        
+        @keyframes glass-pop {
+            0% { opacity: 0; transform: scale(0.85) translateY(30px); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+        }
+        .animate-glass-pop { 
+            animation: glass-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; 
+        }
+
+        .glass-swal {
+            background: rgba(18, 18, 26, 0.85) !important;
+            backdrop-filter: blur(30px) !important;
+            -webkit-backdrop-filter: blur(30px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 2rem !important;
+            color: #ffffff !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+        }
+        html:not(.dark) .glass-swal {
+            background: rgba(255, 255, 255, 0.85) !important;
+            color: #000000 !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        .glass-swal-confirm { background: #a855f7 !important; border-radius: 1rem !important; font-weight: 800 !important; padding: 12px 30px !important; }
+        
+        .super-glass {
+            background: rgba(255, 255, 255, 0.4) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            border: 1px solid rgba(0, 0, 0, 0.1) !important;
+        }
+        .dark .super-glass {
+            background: rgba(18, 18, 26, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        
+        .glass-pointer {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .check-svg { stroke-dasharray: 100; stroke-dashoffset: 100; }
+    </style>
+</head>
+
+<body class="bg-[#f0f4f8] text-gray-900 dark:bg-[#050508] dark:text-white overflow-x-hidden selection:bg-purple-500 selection:text-white min-h-[100dvh]">
+
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none gemini-bg">
+        <div class="absolute top-[-10%] left-[-20%] w-[80vw] md:w-[60vw] h-[80vw] md:h-[60vw] rounded-full blur-[100px] md:blur-[140px] opacity-40 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-purple-600 to-pink-500 animate-spin-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-20%] w-[70vw] md:w-[50vw] h-[70vw] md:h-[50vw] rounded-full blur-[100px] md:blur-[140px] opacity-40 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-blue-600 to-cyan-400 animate-spin-reverse"></div>
+    </div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12 min-h-[100dvh] flex flex-col items-center justify-center">
+        
+        <div class="w-full max-w-6xl flex items-center mb-6">
+            <a href="index.html" class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full backdrop-blur-2xl shadow-lg bg-white/70 border border-black/10 dark:bg-white/5 dark:border-white/10 hover:shadow-[0_10px_20px_rgba(168,85,247,0.15)] hover:-translate-x-1 transition-all">
+                <div class="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                </div>
+                <span class="font-black text-sm uppercase tracking-widest mr-2">Home</span>
+            </a>
+        </div>
+
+        <div class="rounded-[3rem] p-4 md:p-6 lg:p-8 shadow-2xl super-glass flex flex-col lg:flex-row gap-8 lg:gap-12 w-full max-w-6xl animate-pop-in">
+            
+            <div class="hidden lg:block lg:w-1/2 relative">
+                <div class="sticky top-8 h-full min-h-[600px] rounded-[2.5rem] overflow-hidden border border-black/10 dark:border-white/10 shadow-2xl group cursor-pointer relative">
+                    <img src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1000&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105">
+                    
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent flex flex-col justify-end p-10 backdrop-blur-[2px]">
+                        <div class="mb-6 transform transition-transform duration-500 group-hover:-translate-y-2 relative z-20">
+                            <span class="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest mb-4 inline-block shadow-lg">GMC Premium</span>
+                            <h2 class="text-4xl xl:text-5xl font-black text-white leading-[1.1] mb-2 drop-shadow-xl">Unlock the <br>PRO Engine.</h2>
+                            <p class="text-white font-bold text-lg drop-shadow">Don't leave your career to chance.</p>
+                        </div>
+                        
+                        <div class="space-y-4 transform transition-transform duration-500 group-hover:-translate-y-2 delay-75 relative z-20">
+                            <div class="flex items-center gap-4 glass-pointer p-4 rounded-2xl">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/30 flex items-center justify-center shrink-0">
+                                    <span class="text-lg">🔋</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-black text-sm">3 Premium Tokens</h4>
+                                    <p class="text-white/80 text-xs font-medium mt-0.5">Predict for different marks & percentiles.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center gap-4 glass-pointer p-4 rounded-2xl">
+                                <div class="w-10 h-10 rounded-full bg-blue-500/30 flex items-center justify-center shrink-0">
+                                    <span class="text-lg">🤖</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-black text-sm">AI Strategy Insights</h4>
+                                    <p class="text-white/80 text-xs font-medium mt-0.5">Gemini-powered placement & choice curation.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 glass-pointer p-4 rounded-2xl">
+                                <div class="w-10 h-10 rounded-full bg-green-500/30 flex items-center justify-center shrink-0">
+                                    <span class="text-lg">📊</span>
+                                </div>
+                                <div>
+                                    <h4 class="text-white font-black text-sm">Advanced Matrix</h4>
+                                    <p class="text-white/80 text-xs font-medium mt-0.5">Dynamic Minority mapping & 4-year trends.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/2 flex flex-col justify-center py-4 md:py-8 lg:px-6 relative z-30">
+                
+                <div class="mb-8 text-center lg:text-left">
+                    <div class="w-16 h-16 mx-auto lg:mx-0 bg-gradient-to-tr from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(168,85,247,0.5)] mb-6 transform rotate-3">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h1 id="page-title" class="text-4xl md:text-5xl font-black tracking-tight mb-3 text-black dark:text-white">Upgrade PRO.</h1>
+                    <p class="text-gray-600 dark:text-gray-400 font-bold text-base md:text-lg">Gain the ultimate admission advantage.</p>
+                </div>
+
+                <div class="bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-3xl p-8 mb-8 text-center lg:text-left relative overflow-hidden group backdrop-blur-[2px]">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    
+                    <span id="discount-badge" class="text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 bg-purple-500/10 border border-purple-500/20 px-4 py-1.5 rounded-full mb-4 inline-block hidden">20% OFF APPLIED</span>
+                    
+                    <div class="flex items-end justify-center lg:justify-start gap-3 mb-2 relative z-10">
+                        <span id="original-price" class="text-2xl font-black text-gray-400 line-through hidden">₹299</span>
+                        <h2 id="price-display" class="text-6xl font-black text-black dark:text-white tracking-tighter">₹299</h2>
+                    </div>
+                    <p id="price-subtitle" class="text-sm font-bold text-gray-500 relative z-10">One-time payment for 3 Prediction Tokens</p>
+                </div>
+
+                <div id="promo-container" class="mb-8 relative z-10">
+                    <label class="block text-xs md:text-sm font-bold mb-3 tracking-wide text-gray-700 dark:text-gray-300">Have a Referral Code?</label>
+                    <div class="flex gap-3">
+                        <input type="text" id="promo-input" placeholder="Enter Code (e.g. ADI9X2)" class="flex-1 rounded-2xl px-5 py-4 glass-input font-black uppercase text-lg transition-all focus:scale-[1.02]">
+                        <button id="apply-promo-btn" onclick="applyPromo()" class="bg-black text-white dark:bg-white dark:text-black font-black text-base px-8 py-4 rounded-2xl transition-all active:scale-95 shadow-md hover:shadow-lg flex items-center justify-center">
+                            Apply
+                        </button>
+                    </div>
+                    <p id="promo-msg" class="text-xs font-bold mt-3 text-left hidden transition-all"></p>
+                </div>
+
+                <div class="pt-2 relative z-10">
+                    <button id="buy-btn" onclick="startCheckout()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-black text-lg md:text-xl py-5 rounded-2xl shadow-[0_10px_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center group">
+                        Proceed to Payment <svg class="w-5 h-5 md:w-6 md:h-6 ml-2 md:ml-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                    </button>
+                    <p class="text-center text-xs font-bold text-gray-500 mt-4 flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                        Secured by Razorpay
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="loading-modal" class="fixed inset-0 z-[9999] bg-[#050508]/70 backdrop-blur-[40px] hidden flex-col items-center justify-center p-4 transition-all duration-300">
+        <div class="flex flex-col items-center justify-center animate-glass-pop pt-24 pb-2 text-center">
+            <div class="w-20 h-20 border-4 border-t-purple-500 border-r-blue-500 border-b-cyan-500 border-l-purple-600 rounded-full animate-spin mb-6 mx-auto shadow-[0_0_20px_rgba(168,85,247,0.5)]"></div>
+            <h3 class="text-2xl font-black text-white mb-2">Connecting to Gateway...</h3>
+            <p class="text-gray-400 font-bold text-sm">Please do not close this window.</p>
+        </div>
+    </div>
+
+    <div id="successModal" class="fixed inset-0 z-[9999] bg-[#050508]/90 backdrop-blur-2xl hidden flex-col items-center justify-center px-4 opacity-0 transition-opacity duration-500">
+        <div class="bg-white/10 dark:bg-[#12121a]/60 rounded-[3rem] p-10 md:p-14 flex flex-col items-center justify-center text-center max-w-md w-full border border-white/20 shadow-[0_0_60px_rgba(34,197,94,0.2)] backdrop-blur-3xl relative overflow-hidden animate-pop-in max-h-[85vh] overflow-y-auto">
+            <div class="absolute inset-0 bg-gradient-to-b from-green-500/10 to-transparent pointer-events-none"></div>
+            
+            <svg viewBox="0 0 52 52" class="w-36 h-36 mb-6 stroke-green-500 stroke-[4px] fill-none relative z-10" style="stroke-linecap: round; stroke-linejoin: round;">
+                <circle cx="26" cy="26" r="24" class="stroke-green-500/20" />
+                <path d="M14 27l7 7 16-16" class="check-svg animate-draw-check" />
+            </svg>
+            
+            <h2 id="success-title" class="text-4xl font-black mb-3 text-white tracking-tight relative z-10">Confirmed!</h2>
+            <p id="success-desc" class="text-gray-300 font-medium text-lg mb-8 leading-relaxed relative z-10">You are now a PRO Member.<br>Let's get started.</p>
+            
+            <button onclick="window.top.location.href='index.html'" class="w-full flex justify-center items-center bg-white text-black font-black text-lg py-4 rounded-2xl transition-transform hover:scale-105 active:scale-95 shadow-[0_10px_20px_rgba(255,255,255,0.1)] relative z-10">
+                Back to Dashboard
+            </button>
+            <p class="text-gray-500 text-xs font-bold mt-4 relative z-10">Redirecting in <span id="success-countdown">3</span>s…</p>
+        </div>
+    </div>
+
+    <div id="loginModal" onclick="if(event.target === this) closeLoginModal()" class="fixed inset-0 z-[100] bg-[#050508]/70 backdrop-blur-[40px] hidden flex-col items-center justify-center px-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white/90 dark:bg-[#12121a]/95 w-full max-w-md rounded-[3rem] p-8 md:p-10 shadow-[0_0_50px_rgba(168,85,247,0.2)] transform scale-95 transition-transform duration-300 border border-black/10 dark:border-white/10 relative flex flex-col items-center text-center max-h-[85vh] overflow-y-auto" id="loginCard">
+            <button onclick="closeLoginModal()" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors text-black dark:text-white font-black text-xl">✕</button>
+            <img src="bin/logo.png" alt="Logo" class="w-16 h-16 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 shadow-[0_0_20px_rgba(168,85,247,0.4)] mb-4 object-cover">
+            <h2 class="text-2xl font-black mb-2 text-black dark:text-white tracking-tight">Login Required</h2>
+            <p class="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-8">Sign in to unlock the PRO Predictor and sync your data.</p>
+            <div id="google-button-container" class="w-full flex justify-center min-h-[44px]"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://127.0.0.1:5000";
+        let finalPromoCode = "";
+        let isTopup = false;
+        const successSound = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3');
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            
+            // Only trigger Top-Up mode if URL parameter exists
+            const urlParams = new URLSearchParams(window.location.search);
+            isTopup = urlParams.get('topup') === '1';
+            
+            if (isTopup) {
+                document.getElementById('page-title').innerText = "Top Up Tokens.";
+                document.getElementById('price-display').innerText = "₹179";
+                document.getElementById('price-subtitle').innerText = "Add 3 more prediction tokens to your account";
+                document.getElementById('promo-container').style.display = 'none';
+                
+                const badge = document.getElementById('discount-badge');
+                badge.innerText = "40% OFF — TOP UP";
+                badge.classList.remove('hidden');
+                badge.classList.add('bg-blue-500/10', 'text-blue-600', 'dark:text-blue-400', 'border-blue-500/20');
+            }
+            
+            if (typeof isLoggedIn === 'function' && !isLoggedIn()) {
+                setTimeout(() => {
+                    if (typeof openLoginModal === 'function') openLoginModal();
+                }, 600);
+            }
+
+            const pendingRef = localStorage.getItem('gmc-pending-ref');
+            if (pendingRef && !isTopup) {
+                const promoInput = document.getElementById('promo-input');
+                if (promoInput) {
+                    promoInput.value = pendingRef;
+                    setTimeout(applyPromo, 500); 
+                }
+            }
+        });
+
+        async function applyPromo() {
+            const input = document.getElementById('promo-input');
+            const code = input.value.trim().toUpperCase();
+            const msgEl = document.getElementById('promo-msg');
+            const email = localStorage.getItem('gmc-user-email');
+
+            if(!code) return;
+            if(!email) {
+                Swal.fire({icon: 'warning', title: 'Login Required', text: 'Please log in first.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                if (typeof openLoginModal === 'function') openLoginModal();
+                return;
+            }
+
+            const btn = document.getElementById('apply-promo-btn');
+            btn.innerHTML = `<svg class="w-5 h-5 animate-spin mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/validate-promo`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ promo_code: code, email: email })
+                }).then(r => r.json());
+
+                if (res.valid) {
+                    finalPromoCode = code;
+                    
+                    document.getElementById('original-price').classList.remove('hidden');
+                    const priceDisp = document.getElementById('price-display');
+                    priceDisp.innerText = "₹239";
+                    priceDisp.classList.add('text-green-500');
+                    priceDisp.classList.remove('text-black', 'dark:text-white');
+                    
+                    const badge = document.getElementById('discount-badge');
+                    badge.innerText = "20% REFERRAL DISCOUNT APPLIED";
+                    badge.classList.remove('hidden', 'text-purple-600', 'dark:text-purple-400');
+                    badge.classList.add('bg-green-500/10', 'border-green-500/20', 'text-green-600', 'dark:text-green-400');
+
+                    input.disabled = true;
+                    btn.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>`;
+                    btn.classList.add('bg-green-500', 'text-white', 'border-transparent');
+                    
+                    msgEl.innerText = res.message;
+                    msgEl.className = "text-xs font-bold mt-3 text-left text-green-500 block animate-pop-in";
+                } else {
+                    btn.innerText = "Apply";
+                    btn.disabled = false;
+                    msgEl.innerText = res.message;
+                    msgEl.className = "text-xs font-bold mt-3 text-left text-red-500 block animate-pop-in";
+                }
+            } catch (err) {
+                btn.innerText = "Apply";
+                btn.disabled = false;
+                msgEl.innerText = "Server Error. Try again.";
+                msgEl.className = "text-xs font-bold mt-3 text-left text-red-500 block animate-pop-in";
+            }
+        }
+
+        async function startCheckout() {
+            const userEmail = localStorage.getItem('gmc-user-email');
+            if(!userEmail) {
+                Swal.fire({icon: 'warning', title: 'Login Required', text: 'Please login before purchasing.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                if (typeof openLoginModal === 'function') openLoginModal();
+                return;
+            }
+
+            // Silent Audio Unlock Trick
+            successSound.muted = true;
+            successSound.play().then(() => {
+                successSound.pause();
+                successSound.muted = false;
+                successSound.currentTime = 0;
+            }).catch(e => console.log("Audio unlock pending"));
+
+            const loadingModal = document.getElementById('loading-modal');
+            loadingModal.classList.remove('hidden');
+            loadingModal.classList.add('flex');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/create-pro-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: userEmail, 
+                        promo_code: finalPromoCode || "",
+                        is_topup: isTopup 
+                    })
+                });
+                const data = await response.json();
+
+                if (data.result !== 'success') throw new Error(data.error || "Order creation failed.");
+
+                loadingModal.classList.add('hidden');
+                loadingModal.classList.remove('flex');
+
+                // EXACT OPTIONS BLOCK REQUESTED BY USER
+                const options = {
+                    "key": data.key_id || "rzp_test_StXFshYiTuu4f0", 
+                    "amount": data.amount, 
+                    "currency": "INR",
+                    "name": "Guess My College",
+                    "description": isTopup ? "Pro Token Top-Up" : "Pro Predictor Access",
+                    "image": "bin/logo.png",
+                    "order_id": data.order_id,
+                    "prefill": { "email": userEmail },
+                    "theme": { "color": "#a855f7" },
+                    "handler": async function (response) {
+                        
+                        Swal.fire({
+                            title: 'Verifying Payment...',
+                            text: 'Please wait while we secure your account.',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); },
+                            customClass: { popup: 'glass-swal' }
+                        });
+
+                        try {
+                            const grantRes = await fetch(`${API_BASE_URL}/verify-and-grant`, {
+                                method: 'POST',
+                                headers: {'Content-Type':'application/json'},
+                                body: JSON.stringify({
+                                    razorpay_payment_id:  response.razorpay_payment_id,
+                                    razorpay_order_id:    response.razorpay_order_id,
+                                    razorpay_signature:   response.razorpay_signature,
+                                    email:                userEmail,
+                                    promo_code:           finalPromoCode || ""
+                                })
+                            });
+                            
+                            const grant = await grantRes.json();
+                            
+                            if (grant.result !== 'success') {
+                                Swal.fire({
+                                    icon:'error', title:'Verification Failed',
+                                    text:'Payment received but verification failed. Contact Support at 75881 75671.',
+                                    customClass:{popup:'glass-swal',confirmButton:'glass-swal-confirm'}
+                                });
+                                return;
+                            }
+
+                                                        // Update state
+                            localStorage.setItem('gmc-is-premium', 'true');
+                            localStorage.setItem('gmc-needs-topup', 'false');
+                            if (isTopup) {
+                                const current = parseInt(localStorage.getItem('gmc-tokens-left') || '0');
+                                localStorage.setItem('gmc-tokens-left', String(current + 3));
+                            } else {
+                                localStorage.setItem('gmc-tokens-left', '3');
+                            }
+
+                            // Close Swal and go home — no modal, no timer, no chance of silent crash
+                            Swal.close();
+                            window.location.href = 'index.html';
+
+                            // Update the Modal Text based on mode
+                            document.getElementById('success-title').innerText = isTopup ? '🔋 Tokens Topped Up!' : '🎉 PRO Unlocked!';
+                            document.getElementById('success-desc').innerHTML = isTopup ? '3 predictions have been added to your account.' : 'You now have 3 premium predictions.<br>Let\'s get started.';
+
+                            // Pop the Custom Success Modal
+                            const successModal = document.getElementById('successModal');
+                            successModal.classList.remove('hidden');
+                            successModal.style.display = 'flex'; 
+                            setTimeout(() => successModal.classList.remove('opacity-0'), 10);
+                            
+                            // ✅ Reliable countdown redirect — uses window.top to escape any iframe context
+                            let _cd = 3;
+                            const _cdEl = document.getElementById('success-countdown');
+                            if (_cdEl) _cdEl.textContent = _cd;
+                            const _cdInterval = setInterval(() => {
+                                _cd--;
+                                if (_cdEl) _cdEl.textContent = _cd;
+                                if (_cd <= 0) {
+                                    clearInterval(_cdInterval);
+                                    window.top.location.href = 'index.html';
+                                }
+                            }, 1000);
+
+                        } catch (verifyErr) {
+                            Swal.fire({
+                                icon:'error', title:'Network Error',
+                                text:'Payment succeeded, but we could not verify with the server. Contact Support.',
+                                customClass:{popup:'glass-swal',confirmButton:'glass-swal-confirm'}
+                            });
+                        }
+                    }
+                };
+
+                const rzp1 = new Razorpay(options);
+                
+                rzp1.on('payment.failed', function (response){
+                    Swal.fire({
+                        icon: 'error', 
+                        title: 'Payment Failed', 
+                        text: response.error.description, 
+                        customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                    });
+                });
+                
+                rzp1.open();
+
+            } catch (error) {
+                loadingModal.classList.add('hidden');
+                loadingModal.classList.remove('flex');
+                Swal.fire({
+                    icon: 'error', 
+                    title: 'Gateway Error', 
+                    text: 'Server Offline. ' + error.message, 
+                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
