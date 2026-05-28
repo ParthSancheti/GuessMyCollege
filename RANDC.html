@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <script>
+        // Anti-Flicker Script: Force Dark Mode by default
+        const _t = localStorage.getItem('gmc-theme') || 'dark';
+        if (_t === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refunds & Cancellations - Guess My College</title>
+    <link rel="icon" href="bin/logo_rounded.png" type="image/png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        
+        body {
+            background-color: #f0f4f8;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .dark body {
+            background-color: #050508;
+        }
+        
+        @keyframes hue-shift {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(90deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
+        .gemini-bg { animation: hue-shift 20s infinite ease-in-out; }
+    </style>
+</head>
+
+<body class="bg-[#f0f4f8] text-gray-900 dark:bg-[#050508] dark:text-white overflow-x-hidden selection:bg-purple-500 selection:text-white min-h-[100dvh]">
+
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none gemini-bg">
+        <div class="absolute top-[-10%] left-[-20%] w-[80vw] md:w-[60vw] h-[80vw] md:h-[60vw] rounded-full blur-[100px] md:blur-[140px] opacity-40 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-purple-600 to-pink-500 animate-spin-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-20%] w-[70vw] md:w-[50vw] h-[70vw] md:h-[50vw] rounded-full blur-[100px] md:blur-[140px] opacity-40 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-blue-600 to-cyan-400 animate-spin-reverse"></div>
+    </div>
+
+    <header class="fixed top-4 left-0 w-full px-4 md:px-8 z-40">
+        <div class="max-w-7xl mx-auto flex items-center px-4 md:pl-6 py-3 rounded-full border backdrop-blur-3xl shadow-xl bg-white/50 border-white/40 dark:bg-white/5 dark:border-white/10">
+            <a href="index.html" class="flex items-center justify-center flex-1 md:flex-none cursor-pointer active:scale-95 transition-transform">
+                <img src="bin/logo.png" alt="Logo" class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 mr-2 shadow-[0_0_15px_rgba(168,85,247,0.5)] object-cover" onerror="this.outerHTML='<div class=\'w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 mr-2 shadow-[0_0_15px_rgba(168,85,247,0.5)] flex items-center justify-center text-white font-black text-xs\'>G</div>'">
+                <h1 class="font-black text-lg md:text-xl tracking-tight text-black dark:text-white whitespace-nowrap">Guess My College</h1>
+            </a>
+            
+            <nav class="hidden md:flex ml-auto space-x-8 items-center font-black text-base tracking-wide text-gray-700 dark:text-gray-300 pr-4">
+                <a href="terms.html" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Terms</a>
+                <a href="index.html" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Back to Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="relative z-10 pt-32 pb-16 px-4 md:px-8 max-w-4xl mx-auto">
+        <div class="rounded-[2.5rem] md:rounded-[3rem] border-2 border-blue-500/30 p-8 md:p-12 shadow-2xl backdrop-blur-2xl bg-white/60 dark:bg-black/40">
+            <h1 class="text-3xl md:text-5xl font-black mb-4 tracking-tight text-black dark:text-white">Refund and <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-400">Cancellation</span> Policy</h1>
+            <p class="text-sm font-bold text-gray-500 dark:text-gray-400 mb-10">Last Updated: May 28, 2026</p>
+
+            <div class="space-y-8 text-gray-800 dark:text-gray-200 leading-relaxed font-medium">
+                
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">1. Policy Overview</h2>
+                    <p>This policy governs the terms of cancellation and refunds specifically for our <strong>1:1 Expert Guidance Sessions (priced at ₹899)</strong>. As this service involves blocking dedicated time with our expert counselors and generating custom data models, strict timelines apply to cancellation requests.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">2. Cancellation Timelines & Refunds</h2>
+                    <div class="overflow-x-auto mt-3">
+                        <table class="w-full text-left border-collapse bg-white/40 dark:bg-black/20 rounded-xl overflow-hidden shadow-sm">
+                            <thead>
+                                <tr class="border-b border-black/20 dark:border-white/20">
+                                    <th class="py-4 px-5 font-black text-black dark:text-white">Time of Cancellation</th>
+                                    <th class="py-4 px-5 font-black text-black dark:text-white">Refund Eligibility</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                                    <td class="py-4 px-5">More than 24 hours before the scheduled session</td>
+                                    <td class="py-4 px-5 text-green-600 dark:text-green-400 font-bold">100% Full Refund</td>
+                                </tr>
+                                <tr class="border-b border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                                    <td class="py-4 px-5">Less than 24 hours before the scheduled session</td>
+                                    <td class="py-4 px-5 text-orange-600 dark:text-orange-400 font-bold">No Refund (Free Rescheduling Allowed)</td>
+                                </tr>
+                                <tr class="hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                                    <td class="py-4 px-5">No-show / Missing the session without prior notice</td>
+                                    <td class="py-4 px-5 text-red-600 dark:text-red-400 font-bold">No Refund</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">3. Rescheduling Policy</h2>
+                    <p>If you cannot attend your scheduled session, you may request to reschedule it up to <strong>6 hours before</strong> the meeting begins at no additional cost. Rescheduling is subject to counselor availability.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">4. Cancellations by Guess My College</h2>
+                    <p>In the rare event of technical difficulties or counselor unavailability, Guess My College reserves the right to cancel or reschedule your session. If we cancel, you will be offered the choice of a prioritized rescheduled time slot or a <strong>100% full refund</strong>.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">5. Post-Session Refunds</h2>
+                    <p>Because the Expert Guidance Session involves immediate delivery of intellectual property (customized CAP preference forms based on algorithmic data) and dedicated human time, <strong>no refunds are issued once a session has been successfully completed</strong>. However, as per our guarantee, we offer continued mentorship via WhatsApp until your admission is secure.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">6. Processing Timelines</h2>
+                    <p>Approved refunds will be credited back to your original payment method (e.g., Credit/Debit Card, UPI, or Net Banking) within <strong>5 to 7 business days</strong>.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">7. Contact for Support</h2>
+                    <p>To request a cancellation, reschedule, or inquire about a refund, please contact us immediately using the details below:</p>
+                    <div class="mt-3 bg-white/40 dark:bg-white/5 p-5 rounded-2xl border border-black/10 dark:border-white/10 inline-block shadow-sm">
+                        <p class="mb-2"><strong class="text-black dark:text-white">Phone / WhatsApp:</strong> +91 75881 75671</p>
+                        <p><strong class="text-black dark:text-white">Support Hours:</strong> 10:00 AM - 7:00 PM (IST)</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-8 pt-10 pb-8 px-6 md:px-8 border-t border-black/10 dark:border-white/10 backdrop-blur-3xl bg-white/40 dark:bg-white/5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs md:text-sm font-bold text-gray-500 dark:text-gray-400 gap-4">
+            <p>© 2026 Guess My College. All rights reserved.</p>
+            <div class="flex space-x-6 text-black dark:text-white">
+                <a href="terms.html" class="hover:text-purple-500 transition-colors">Terms of Service</a>
+                <a href="privacy.html" class="hover:text-blue-500 transition-colors">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

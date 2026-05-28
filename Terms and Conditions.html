@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <script>
+        // Anti-Flicker Script: Force Dark Mode by default
+        const _t = localStorage.getItem('gmc-theme') || 'dark';
+        if (_t === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - Guess My College</title>
+    <link rel="icon" href="bin/logo_rounded.png" type="image/png">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        
+        body {
+            background-color: #f0f4f8;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .dark body {
+            background-color: #050508;
+        }
+        
+        @keyframes hue-shift {
+            0% { filter: hue-rotate(0deg); }
+            50% { filter: hue-rotate(90deg); }
+            100% { filter: hue-rotate(0deg); }
+        }
+        .gemini-bg { animation: hue-shift 20s infinite ease-in-out; }
+    </style>
+</head>
+
+<body class="bg-[#f0f4f8] text-gray-900 dark:bg-[#050508] dark:text-white overflow-x-hidden selection:bg-purple-500 selection:text-white min-h-[100dvh]">
+
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none gemini-bg">
+        <div class="absolute top-[-10%] left-[-20%] w-[80vw] md:w-[60vw] h-[80vw] md:h-[60vw] rounded-full blur-[100px] md:blur-[140px] opacity-40 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-purple-600 to-pink-500 animate-spin-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-20%] w-[70vw] md:w-[50vw] h-[70vw] md:h-[50vw] rounded-full blur-[100px] md:blur-[140px] opacity-40 dark:opacity-30 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-blue-600 to-cyan-400 animate-spin-reverse"></div>
+    </div>
+
+    <header class="fixed top-4 left-0 w-full px-4 md:px-8 z-40">
+        <div class="max-w-7xl mx-auto flex items-center px-4 md:pl-6 py-3 rounded-full border backdrop-blur-3xl shadow-xl bg-white/50 border-white/40 dark:bg-white/5 dark:border-white/10">
+            <a href="index.html" class="flex items-center justify-center flex-1 md:flex-none cursor-pointer active:scale-95 transition-transform">
+                <img src="bin/logo.png" alt="Logo" class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 mr-2 shadow-[0_0_15px_rgba(168,85,247,0.5)] object-cover" onerror="this.outerHTML='<div class=\'w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500 mr-2 shadow-[0_0_15px_rgba(168,85,247,0.5)] flex items-center justify-center text-white font-black text-xs\'>G</div>'">
+                <h1 class="font-black text-lg md:text-xl tracking-tight text-black dark:text-white whitespace-nowrap">Guess My College</h1>
+            </a>
+            
+            <nav class="hidden md:flex ml-auto space-x-8 items-center font-black text-base tracking-wide text-gray-700 dark:text-gray-300 pr-4">
+                <a href="refunds.html" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Refund Policy</a>
+                <a href="index.html" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">Back to Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="relative z-10 pt-32 pb-16 px-4 md:px-8 max-w-4xl mx-auto">
+        <div class="rounded-[2.5rem] md:rounded-[3rem] border-2 border-purple-500/30 p-8 md:p-12 shadow-2xl backdrop-blur-2xl bg-white/60 dark:bg-black/40">
+            <h1 class="text-3xl md:text-5xl font-black mb-4 tracking-tight text-black dark:text-white">Terms and <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-500">Conditions</span></h1>
+            <p class="text-sm font-bold text-gray-500 dark:text-gray-400 mb-10">Last Updated: May 28, 2026</p>
+
+            <div class="space-y-8 text-gray-800 dark:text-gray-200 leading-relaxed font-medium">
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">1. Agreement to Terms</h2>
+                    <p>By accessing or using Guess My College ("we", "our", or "us"), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you may not use our services, including our score calculators, prediction tools, and booking features.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">2. Description of Services</h2>
+                    <p>Guess My College provides data-driven educational tools primarily for MHT-CET aspirants. This includes:</p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li><strong>Automated Calculation:</strong> Parsing user-uploaded response sheets to calculate exact raw scores.</li>
+                        <li><strong>Prediction Engine:</strong> Analyzing 4 years of historical data and thousands of past cutoffs to predict potential college admissions.</li>
+                        <li><strong>Expert Guidance:</strong> Providing paid 1:1 mentorship sessions to design personalized CAP preference lists.</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">3. Disclaimer of Guarantees</h2>
+                    <p>While our algorithms utilize historical admission data to provide highly calibrated predictions, the MHT-CET centralized admission process (CAP) is dynamic and subject to external variables (e.g., changes in seat matrix, tie-breaker rules, and category reservations like GOPENS, SC, ST, EWS). <strong>Our predictions and custom CAP lists are advisory in nature. We do not guarantee admission into any specific institution.</strong></p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">4. User Accounts & Security</h2>
+                    <p>You may securely sign in using third-party providers (Google Sign-In). You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+                </section>
+
+                <section>
+                    <h2 class="text-2xl font-black text-black dark:text-white mb-3">5. Intellectual Property</h2>
+                    <p>All content, branding, UI/UX designs, algorithms, and databases provided on the Guess My College platform are the exclusive property of Guess My College. You may not scrape, copy, or reproduce our platform or its underlying logic without written consent.</p>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-8 pt-10 pb-8 px-6 md:px-8 border-t border-black/10 dark:border-white/10 backdrop-blur-3xl bg-white/40 dark:bg-white/5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center text-xs md:text-sm font-bold text-gray-500 dark:text-gray-400 gap-4">
+            <p>© 2026 Guess My College. All rights reserved.</p>
+            <div class="flex space-x-6 text-black dark:text-white">
+                <a href="privacy.html" class="hover:text-purple-500 transition-colors">Privacy Policy</a>
+                <a href="refunds.html" class="hover:text-blue-500 transition-colors">Refund Policy</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
