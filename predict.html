@@ -1792,10 +1792,38 @@ function downloadCSV(){
   link.click(); 
   document.body.removeChild(link);
 }
-function bookCounselling() {
-    // Route the user directly to the optimized checkout page
-    window.location.href = 'booking.html';
+
+/* ═══════════════════════════════════════
+   PAYMENT
+═══════════════════════════════════════ */
+function bookCounselling(){
+  if(typeof Swal !== "undefined"){
+    Swal.fire({
+      icon: "question", title: "Book Expert Counselling?",
+      html: "A mentor reviews your option form &amp; CAP strategy personally.<br><br><b>Fee: ₹899</b>",
+      showCancelButton: true, confirmButtonText: "Proceed to Pay", cancelButtonText: "Maybe Later",
+      customClass: {popup: "gs", confirmButton: "gs-ok", cancelButton: "gs-cl"}
+    }).then(r => { if(r.isConfirmed) startPayment(); });
+  }
 }
+
+async function startPayment(){
+  try{
+    const d = await(await fetch(`${API_BASE}/create-payment-order`, {method: "POST"})).json();
+    if(d.result !== "success"){ swalErr("Payments Unavailable", d.error || "Try again."); return; }
+    
+    if(typeof Swal !== "undefined") {
+        Swal.fire({
+            icon: "success", title: "Order Created",
+            html: `Order <b>${d.order_id}</b> · ₹${(d.amount/100).toFixed(0)}<br><small>Add Razorpay checkout script to complete.</small>`,
+            customClass: {popup: "gs", confirmButton: "gs-ok"}
+        });
+    }
+  } catch {
+      swalErr("Payment Error", "Could not reach the payment server.");
+  }
+}
+
 
 </script>
 </body>

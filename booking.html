@@ -363,7 +363,7 @@
             loadingModal.classList.remove('hidden');
 
             try {
-                const response = await fetch('${API_BASE}/create-payment-order', {
+                const response = await fetch('https://parthsancheti.pythonanywhere.com/create-payment-order', {
                     method: 'POST'
                 });
                 
@@ -373,7 +373,7 @@
                 loadingModal.classList.add('hidden');
 
                 const options = {
-                    "key": "data.key_id", 
+                    "key": "rzp_test_StXFshYiTuu4f0", 
                     "amount": data.amount, 
                     "currency": "INR",
                     "name": "Guess My College",
@@ -382,49 +382,37 @@
                     "order_id": data.order_id, 
                     "handler": function (rzp_response){
                         
-                    loadingModal.classList.remove('hidden');
+                        loadingModal.classList.remove('hidden');
 
-                        // Pro-trick: Automatically extract all form fields into a clean JSON object
-                        const formDataObj = Object.fromEntries(new FormData(form));
+                        const fd = new FormData(form);
+                        fd.append('payment_id', rzp_response.razorpay_payment_id);
+                        fd.append('payment_status', 'SUCCESS');
 
-                        // Send everything to Python for cryptographic verification
-                        // ⚠️ NOTE: Change localhost:5000 to your live server URL when deploying!
-                        fetch('${API_BASE}/verify-booking', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                razorpay_payment_id: rzp_response.razorpay_payment_id,
-                                razorpay_order_id: rzp_response.razorpay_order_id,
-                                razorpay_signature: rzp_response.razorpay_signature,
-                                form_data: formDataObj
+                        fetch(SCRIPT_URL, { method: 'POST', body: fd })
+                            .then(res => res.json())
+                            .then(sheetData => {
+                                loadingModal.classList.add('hidden');
+                                if (sheetData.result === 'success') {
+                                    // PLAY UNLOCKED AUDIO!
+                                    successSound.play().catch(e => console.log("Audio blocked by browser:", e));
+                                    
+                                    form.reset();
+                                    successModal.classList.remove('hidden');
+                                    successModal.style.display = 'flex'; 
+                                    setTimeout(() => successModal.classList.remove('opacity-0'), 10);
+                                } else {
+                                    throw new Error(sheetData.error);
+                                }
                             })
-                        })
-                        .then(res => res.json())
-                        .then(serverData => {
-                            loadingModal.classList.add('hidden');
-                            if (serverData.result === 'success') {
-                                // PLAY UNLOCKED AUDIO!
-                                successSound.play().catch(e => console.log("Audio blocked by browser:", e));
-                                
-                                form.reset();
-                                successModal.classList.remove('hidden');
-                                successModal.style.display = 'flex'; 
-                                setTimeout(() => successModal.classList.remove('opacity-0'), 10);
-                            } else {
-                                throw new Error(serverData.error || 'Verification failed on server.');
-                            }
-                        })
-                        .catch(err => {
-                            loadingModal.classList.add('hidden');
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Sync Failed',
-                                text: err.message || 'Payment received but database sync failed. Keep this ID safe: ' + rzp_response.razorpay_payment_id,
-                                customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                            .catch(err => {
+                                loadingModal.classList.add('hidden');
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Sync Failed',
+                                    text: 'Payment received but database sync failed. Keep this ID safe: ' + rzp_response.razorpay_payment_id,
+                                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                                });
                             });
-                        });
                     },
                     "prefill": {
                         "name": form.first_name.value + ' ' + form.last_name.value,
@@ -449,7 +437,7 @@
 
                 rzp1.open();
                 
-                } catch (error) {
+            } catch (error) {
                 loadingModal.classList.add('hidden');
                 console.error("Gateway Error:", error);
                 Swal.fire({

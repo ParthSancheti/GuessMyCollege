@@ -414,7 +414,7 @@
                 formData.append('file', file);
                 formData.append('category', categoryInput.value);
 
-                fetch('${API_BASE}/calculate-score', {
+                fetch('https://parthsancheti.pythonanywhere.com/calculate-score', {
                     method: 'POST',
                     body: formData
                 })
