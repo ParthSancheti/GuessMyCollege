@@ -2,7 +2,7 @@
 // GUESS MY COLLEGE — MASTER STATE, GATEKEEPER & UI ENGINE  (Phase 2)
 // =====================================================================
 
-const API_BASE = "https://api.guessmycollege.in";
+const API_BASE = "https:/parthsancheti/.pythonanywhere.com";
 
 // ─────────────────────────────────────────────
 //  0. MASTER REFERRAL CATCHER (Runs on every page)
