@@ -414,7 +414,7 @@
                 formData.append('file', file);
                 formData.append('category', categoryInput.value);
 
-                fetch('http://localhost:5000/calculate-score', {
+                fetch('https://vividness-dripping-expansion.ngrok-free.dev/calculate-score', {
                     method: 'POST',
                     body: formData
                 })
