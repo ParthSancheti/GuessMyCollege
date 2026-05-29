@@ -518,20 +518,20 @@
 
             // EXACT FIX: If Manual AND no splits, NUKE the chart and breakdown!
             if (isManual && !data.has_splits) {
-                // 1. Hide Breakdown & Chart completely
+                // Completely nuke the panels
                 breakdownPanel.classList.add('hidden');
                 chartPanel.classList.add('hidden');
-                chartPanel.classList.remove('flex', 'md:flex'); // Kill tailwind flex
+                chartPanel.classList.remove('flex', 'md:flex'); 
                 
-                // 2. Center the main score card
+                // Center the score
                 scoreCardContainer.classList.remove('lg:w-7/12');
                 scoreCardContainer.classList.add('w-full', 'max-w-3xl', 'mx-auto');
                 
-                // 3. Make Percentile MASSIVE
+                // Make Percentile MASSIVE
                 pctDisplay.classList.remove('text-xl', 'md:text-2xl');
                 pctDisplay.classList.add('text-4xl', 'md:text-5xl', 'mt-4', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-500');
             } else {
-                // Restore UI for HTML Uploads or Manual Splits
+                // Show panels normally
                 breakdownPanel.classList.remove('hidden');
                 chartPanel.classList.remove('hidden');
                 chartPanel.classList.add('flex');
