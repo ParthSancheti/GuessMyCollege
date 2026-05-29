@@ -441,10 +441,10 @@
                         
                         <div class="flex flex-col space-y-4 items-center sm:items-start text-center sm:text-left">
                             <span class="font-black text-xs md:text-sm uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Direct Contact</span>
-                            <a href="tel:+917588175671" class="text-sm md:text-base font-bold text-black dark:text-white hover:text-green-500 transition-colors flex items-center gap-2">
-                                📞 +91 75881 75671
+                            <a href="tel:+918275994253" class="text-sm md:text-base font-bold text-black dark:text-white hover:text-green-500 transition-colors flex items-center gap-2">
+                                📞 +91 82759 94253
                             </a>
-                            <a href="https://wa.me/917588175671" class="text-sm md:text-base font-bold text-black dark:text-white hover:text-green-500 transition-colors flex items-center gap-2">
+                            <a href="https://wa.me/918275994253" class="text-sm md:text-base font-bold text-black dark:text-white hover:text-green-500 transition-colors flex items-center gap-2">
                                 <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.385 0 12.031c0 2.124.553 4.195 1.603 6.012L.15 24l6.109-1.597c1.745.955 3.693 1.458 5.772 1.458 6.646 0 12.031-5.385 12.031-12.031S18.677 0 12.031 0zM18.1 16.924c-.267.755-1.543 1.458-2.123 1.54-.537.075-1.226.126-3.486-.811-2.73-1.134-4.506-3.953-4.643-4.137-.137-.184-1.109-1.477-1.109-2.816 0-1.339.696-2.001.942-2.274.246-.273.535-.341.714-.341.179 0 .358 0 .513.007.164.007.382-.062.596.458.226.547.74 1.803.808 1.94.068.137.114.296.023.479-.091.183-.137.297-.274.456-.137.159-.291.337-.41.479-.131.154-.269.324-.112.598.156.274.693 1.152 1.488 1.862 1.028.917 1.895 1.199 2.169 1.337.274.137.433.114.596-.068.163-.182.705-.82 1.056-1.104.22-.178.441-.148.694-.053.253.095 1.602.756 1.876.893.274.137.457.205.525.319.068.114.068.665-.199 1.42z"/></svg>
                                 WhatsApp
                             </a>
@@ -452,18 +452,21 @@
                         
                     </div>
 
-                    <!-- New Address Section (Replaces Powered By) -->
                     <div class="flex flex-col space-y-4 items-center sm:items-start text-center sm:text-left w-full sm:w-auto mt-2 sm:mt-0 max-w-[250px]">
-                        <span class="font-black text-xs md:text-sm uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Office Address</span>
-                        <div class="flex items-start gap-2 text-sm md:text-base font-bold text-black dark:text-white text-center sm:text-left">
-                            <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <span class="leading-relaxed">
-                                Sudharm Niwas, Behind Hero Showroom,<br>
-                                Manmad Nagar, Dawkhar Nagar,<br>
-                                Nashik, Maharashtra 423101
-                            </span>
-                        </div>
+                    <button onclick="toggleAddress()" class="group flex items-center gap-2 font-black text-xs md:text-sm uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1 hover:text-purple-500 transition-colors cursor-pointer outline-none">
+                        Office Address
+                        <svg id="address-arrow" class="w-4 h-4 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    
+                    <div id="office-address-content" class="hidden flex items-start gap-2 text-sm md:text-base font-bold text-black dark:text-white text-center sm:text-left">
+                        <svg class="w-5 h-5 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        <span class="leading-relaxed">
+                            Sudharm Niwas, Behind Hero Showroom,<br>
+                            Manmad Nagar, Dawkhar Nagar,<br>
+                            Nashik, Maharashtra 423101
+                        </span>
                     </div>
+                </div>
 
                 </div>
             </div>
@@ -569,6 +572,20 @@
                     window.location.href = 'predict.html';
                 }
             }, 600); 
+        }
+
+        // Toggle Office Address Visibility
+        function toggleAddress() {
+            const content = document.getElementById('office-address-content');
+            const arrow = document.getElementById('address-arrow');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)'; // Flips the arrow up
+            } else {
+                content.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)'; // Flips the arrow back down
+            }
         }
 
         // ── ON LOAD SYNC & ROUTING ──
