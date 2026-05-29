@@ -140,8 +140,8 @@
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                             <span class="absolute bottom-3 left-0 right-0 text-white font-black text-3xl">02</span>
                         </div>
-                        <h3 class="font-bold text-lg mb-2">Ctrl + P (Save HTML)</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Right click on the page or press Ctrl+P to save your sheet.</p>
+                        <h3 class="font-bold text-lg mb-2">Ctrl + S (Save HTML)</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Press Ctrl+S (or Cmd+S on Mac) to save the webpage as an HTML file.</p>
                     </div>
 
                     <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm hover:shadow-xl">
@@ -151,8 +151,55 @@
                             <span class="absolute bottom-3 left-0 right-0 text-white font-black text-3xl">03</span>
                         </div>
                         <h3 class="font-bold text-lg mb-2">Upload File</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Drag and drop that downloaded HTML file directly into the box below.</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Upload your sheet or manually enter your marks below.</p>
                     </div>
+                </div>
+
+                <div class="w-full max-w-2xl flex flex-col gap-6">
+                    
+                    <div class="flex gap-2 p-1.5 bg-white/40 dark:bg-black/20 rounded-2xl border border-black/5 dark:border-white/5">
+                        <button id="tab-btn-upload" onclick="switchMode('upload')" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all">Upload HTML</button>
+                        <button id="tab-btn-manual" onclick="switchMode('manual')" class="flex-1 py-3 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all">Manual Marks</button>
+                    </div>
+
+                    <div class="flex flex-col md:flex-row gap-4 w-full">
+                        <div class="relative custom-select-wrapper flex-1" id="category-wrapper">
+                            <input type="hidden" name="category" id="calc-category">
+                            <div class="w-full rounded-2xl glass-input px-5 py-4 font-bold text-sm md:text-base cursor-pointer flex justify-between items-center transition-all bg-white/60 dark:bg-black/20 dropdown-trigger">
+                                <span class="selected-text text-gray-500 dark:text-gray-400">Select Category</span>
+                                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                            </div>
+                            <div class="absolute z-[60] w-full mt-2 hidden rounded-2xl glass-input bg-white/95 dark:bg-[#12121a]/95 backdrop-blur-3xl overflow-hidden shadow-2xl border border-black/10 dark:border-white/10 dropdown-menu transition-all duration-300">
+                                <div class="max-h-64 overflow-y-auto custom-scrollbar py-2">
+                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="OPEN">OPEN / General</div>
+                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="OBC">OBC</div>
+                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="EWS">EWS</div>
+                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="SC">SC</div>
+                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="ST">ST</div>
+                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="NT/VJ/DT">NT / VJ / DT</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex-1">
+                            <input type="text" id="calc-shift" placeholder="Shift (e.g. 2 May S1) - Optional" class="w-full rounded-2xl glass-input px-5 py-4 font-bold text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/60 dark:bg-black/20 placeholder-gray-500 dark:placeholder-gray-400">
+                        </div>
+                    </div>
+
+                    <label for="file-upload" id="drop-zone" class="w-full h-56 rounded-3xl border-2 border-dashed border-purple-500/50 hover:border-purple-400 bg-gradient-to-b from-purple-500/5 to-blue-500/5 transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden shadow-inner">
+                        <div class="w-16 h-16 rounded-full bg-white dark:bg-black/50 shadow-md flex items-center justify-center mb-4 group-hover:scale-110 transition-all z-10">
+                            <svg class="w-7 h-7 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                        </div>
+                        <span class="text-xl font-black relative z-10">Drop Response Sheet Here</span>
+                        <span class="text-sm font-bold text-gray-500 mt-2 relative z-10">or click to browse (.html, .htm)</span>
+                        <input type="file" id="file-upload" class="hidden" accept=".html,.htm,.mht" onclick="this.value = null">
+                    </label>
+
+                    <div id="manual-zone" class="w-full hidden flex-col gap-4">
+                        <input type="number" id="manual-marks" placeholder="Enter Total Marks (e.g., 145)" class="w-full h-24 text-center rounded-3xl glass-input px-5 py-4 font-black text-4xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/60 dark:bg-black/20" max="200" min="0">
+                        <button onclick="startManualMagic()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-black text-lg shadow-lg hover:scale-[1.02] transition-all">Calculate %ile & Get Insights</button>
+                    </div>
+
                 </div>
 
                 <div class="w-full max-w-2xl flex flex-col gap-6">
@@ -206,7 +253,7 @@
                     
                     <div class="w-full lg:w-7/12 flex flex-col gap-6">
                         
-                        <div class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 flex items-center justify-between shadow-sm relative overflow-hidden">
+                        <div id="chart-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
                             <div class="absolute right-[-10%] top-[-50%] w-48 h-48 bg-purple-500/20 blur-[40px] rounded-full pointer-events-none"></div>
                             <div class="relative z-10">
                                 <p class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">Final Score</p>
@@ -231,7 +278,7 @@
                         </div>
                         </div>
 
-                        <div class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 overflow-hidden shadow-sm">
+                        <div id="subject-breakdown-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 overflow-hidden shadow-sm">
                             <h3 class="text-xl font-black mb-4">Subject Breakdown</h3>
                             <div class="w-full overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
@@ -285,7 +332,7 @@
 
                     <div class="w-full lg:w-5/12 flex flex-col gap-6 h-full">
                         
-                        <div class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
+                        <div id="chart-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
                             <h3 class="text-xl font-black mb-4 w-full text-left">Performance Matrix</h3>
                             <div class="relative w-full max-w-[280px] aspect-square flex-1 flex items-center justify-center">
                                 <canvas id="scoreChart"></canvas>
@@ -318,6 +365,14 @@
         </div> </div>
 
     <script>
+        // --- DOM ELEMENTS ---
+        const initialView = document.getElementById('initial-view');
+        const processingView = document.getElementById('processing-view');
+        const resultsView = document.getElementById('results-view');
+        const fileUpload = document.getElementById('file-upload');
+        const dropZone = document.getElementById('drop-zone');
+        const categoryInput = document.getElementById('calc-category');
+
         // --- 1. CUSTOM DROPDOWN LOGIC ---
         function setupCustomDropdown() {
             const wrapper = document.getElementById('category-wrapper');
@@ -369,14 +424,146 @@
         }
         setupCustomDropdown();
 
-        // --- 2. THE REAL PYTHON BACKEND LOGIC ---
-        const initialView = document.getElementById('initial-view');
-        const processingView = document.getElementById('processing-view');
-        const resultsView = document.getElementById('results-view');
-        const fileUpload = document.getElementById('file-upload');
-        const dropZone = document.getElementById('drop-zone');
-        const categoryInput = document.getElementById('calc-category');
+        // --- 2. TAB SWITCHING LOGIC ---
+        let currentMode = 'upload';
+        function switchMode(mode) {
+            currentMode = mode;
+            const btnUpload = document.getElementById('tab-btn-upload');
+            const btnManual = document.getElementById('tab-btn-manual');
+            const dropZone = document.getElementById('drop-zone');
+            const manualZone = document.getElementById('manual-zone');
 
+            if (mode === 'upload') {
+                btnUpload.className = "flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all";
+                btnManual.className = "flex-1 py-3 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all";
+                dropZone.classList.remove('hidden');
+                dropZone.classList.add('flex');
+                manualZone.classList.add('hidden');
+                manualZone.classList.remove('flex');
+            } else {
+                btnManual.className = "flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all";
+                btnUpload.className = "flex-1 py-3 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all";
+                manualZone.classList.remove('hidden');
+                manualZone.classList.add('flex');
+                dropZone.classList.add('hidden');
+                dropZone.classList.remove('flex');
+            }
+        }
+
+        // --- 3. CORE UI HELPERS ---
+        function triggerProcessingAnimation() {
+            initialView.classList.remove('active-view');
+            initialView.classList.add('hidden-view');
+            
+            setTimeout(() => {
+                initialView.style.display = 'none';
+                processingView.classList.remove('hidden-view');
+                processingView.classList.add('active-view');
+                
+                const texts = ["Analyzing Data...", "Mapping Cutoffs...", "Running AI Model..."];
+                let i = 0;
+                window.txtInterval = setInterval(() => {
+                    i++;
+                    if(i < texts.length) document.getElementById('magic-text').innerText = texts[i];
+                }, 900);
+            }, 400);
+        }
+
+        function populateResults(data, isManual = false) {
+            clearInterval(window.txtInterval);
+            
+            // Save to State Manager
+            localStorage.setItem('gmc-category', data.category);
+            localStorage.setItem('gmc-marks', data.total_score);
+
+            // Inject Global Data
+            document.getElementById('final-score-display').innerText = data.total_score;
+            document.getElementById('ai-percentile-display').innerText = data.predicted_percentile || "N/A";
+            document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
+            document.getElementById('ai-advice-display').innerText = data.ai_advice;
+
+            // Handle UI changes based on Manual vs Upload
+            if (isManual) {
+                document.getElementById('subject-breakdown-panel').style.display = 'none';
+                document.getElementById('chart-panel').style.display = 'none';
+            } else {
+                document.getElementById('subject-breakdown-panel').style.display = 'block';
+                document.getElementById('chart-panel').style.display = 'flex';
+                
+                document.getElementById('physics-correct').innerText = data.breakdown.Physics.correct;
+                document.getElementById('physics-score').innerText = data.breakdown.Physics.score;
+                document.getElementById('chemistry-correct').innerText = data.breakdown.Chemistry.correct;
+                document.getElementById('chemistry-score').innerText = data.breakdown.Chemistry.score;
+                document.getElementById('math-correct').innerText = data.breakdown.Mathematics.correct;
+                document.getElementById('math-score').innerText = data.breakdown.Mathematics.score;
+                
+                renderChart(data.breakdown.Physics.score, data.breakdown.Chemistry.score, data.breakdown.Mathematics.score);
+            }
+
+            // Show Results View
+            processingView.classList.remove('active-view');
+            processingView.classList.add('hidden-view');
+            setTimeout(() => {
+                processingView.style.display = 'none';
+                resultsView.classList.remove('hidden-view');
+                resultsView.classList.add('active-view', 'animate-pop-in');
+            }, 400);
+        }
+
+        function handleError(err) {
+            clearInterval(window.txtInterval);
+            processingView.classList.remove('active-view');
+            processingView.classList.add('hidden-view');
+            
+            setTimeout(() => {
+                processingView.style.display = 'none';
+                initialView.style.display = 'flex';
+                initialView.classList.remove('hidden-view');
+                initialView.classList.add('active-view');
+                fileUpload.value = '';
+                
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Calculation Error', 
+                    text: err.message, 
+                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' } 
+                });
+            }, 400);
+        }
+
+        // --- 4. MANUAL CALCULATION LOGIC ---
+        function startManualMagic() {
+            const marks = document.getElementById('manual-marks').value;
+            const shift = document.getElementById('calc-shift').value;
+            
+            if(!categoryInput.value) {
+                Swal.fire({ icon: 'warning', title: 'Category Required', text: 'Please select your category.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                return;
+            }
+            if(!marks || marks < 0 || marks > 200) {
+                Swal.fire({ icon: 'warning', title: 'Invalid Marks', text: 'Please enter a valid score between 0 and 200.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                return;
+            }
+
+            triggerProcessingAnimation();
+
+            const payload = { marks: marks, category: categoryInput.value, shift: shift, exam_type: "MHT-CET" };
+
+            fetch('https://parthsancheti.pythonanywhere.com/calculate-manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.result === 'success') {
+                    populateResults(data, true);
+                } else throw new Error(data.error);
+            })
+            .catch(handleError);
+        }
+
+        // --- 5. HTML UPLOAD LOGIC ---
         function startMagic() {
             const file = fileUpload.files[0];
             
@@ -391,103 +578,29 @@
 
             if(!file) return;
 
-            // Hide Initial View
-            initialView.classList.remove('active-view');
-            initialView.classList.add('hidden-view');
+            triggerProcessingAnimation();
 
-            // Show Processing Core
-            setTimeout(() => {
-                initialView.style.display = 'none';
-                processingView.classList.remove('hidden-view');
-                processingView.classList.add('active-view');
-                
-                // Animate AI Text
-                const texts = ["Extracting HTML Nodes...", "Mapping Category Data...", "Simulating AI Predictions..."];
-                let i = 0;
-                const txtInterval = setInterval(() => {
-                    i++;
-                    if(i < texts.length) document.getElementById('magic-text').innerText = texts[i];
-                }, 900);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('category', categoryInput.value);
+            formData.append('shift', document.getElementById('calc-shift').value); 
 
-                // ACTUAL API CALL TO PYTHON BACKEND
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('category', categoryInput.value);
-
-                fetch('https://parthsancheti.pythonanywhere.com/calculate-score', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(res => res.json())
-                .then(data => {
-                    clearInterval(txtInterval);
-                    
-                    if(data.result === 'success') {
-                        // 1. Save to State Manager
-                        localStorage.setItem('gmc-category', data.category);
-                        localStorage.setItem('gmc-marks', data.total_score);
-
-                        // 2. INJECT DATA INTO THE HTML DOM
-                        document.getElementById('final-score-display').innerText = data.total_score;
-                        // Inject Gemini Pro Percentile & Category
-                        document.getElementById('ai-percentile-display').innerText = data.predicted_percentile || "N/A";
-                        document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
-                        document.getElementById('physics-correct').innerText = data.breakdown.Physics.correct;
-                        document.getElementById('physics-score').innerText = data.breakdown.Physics.score;
-                        
-                        document.getElementById('chemistry-correct').innerText = data.breakdown.Chemistry.correct;
-                        document.getElementById('chemistry-score').innerText = data.breakdown.Chemistry.score;
-                        
-                        document.getElementById('math-correct').innerText = data.breakdown.Mathematics.correct;
-                        document.getElementById('math-score').innerText = data.breakdown.Mathematics.score;
-                        
-                        document.getElementById('ai-advice-display').innerText = data.ai_advice;
-
-                        // 3. Show Results View
-                        processingView.classList.remove('active-view');
-                        processingView.classList.add('hidden-view');
-                        
-                        setTimeout(() => {
-                            processingView.style.display = 'none';
-                            resultsView.classList.remove('hidden-view');
-                            resultsView.classList.add('active-view', 'animate-pop-in');
-                            
-                            // Send Python data to the Chart.js function!
-                            renderChart(data.breakdown.Physics.score, data.breakdown.Chemistry.score, data.breakdown.Mathematics.score); 
-                        }, 400);
-
-                    } else {
-                        // Throws the "Invalid File" error string from Python
-                        throw new Error(data.error); 
-                    }
-                })
-                .catch(err => {
-                    // IF PYTHON FAILS OR WRONG FILE IS UPLOADED:
-                    clearInterval(txtInterval);
-                    processingView.classList.remove('active-view');
-                    processingView.classList.add('hidden-view');
-                    
-                    setTimeout(() => {
-                        processingView.style.display = 'none';
-                        initialView.style.display = 'flex';
-                        initialView.classList.remove('hidden-view');
-                        initialView.classList.add('active-view');
-                        fileUpload.value = '';
-                        
-                        // Show beautiful glass error popup!
-                        Swal.fire({ 
-                            icon: 'error', 
-                            title: 'Parsing Error', 
-                            text: err.message, 
-                            customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' } 
-                        });
-                    }, 400);
-                });
-
-            }, 400);
+            fetch('https://parthsancheti.pythonanywhere.com/calculate-score', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.result === 'success') {
+                    populateResults(data, false);
+                } else {
+                    throw new Error(data.error); 
+                }
+            })
+            .catch(handleError);
         }
 
-        // Event Listeners for Drag and Drop
+        // --- 6. DRAG & DROP EVENTS ---
         fileUpload.addEventListener('change', function(e) { if(this.files && this.files.length > 0) startMagic(); });
 
         dropZone.addEventListener('dragover', (e) => {
@@ -506,7 +619,7 @@
             }
         });
 
-        // --- 3. CHART.JS DYNAMIC INJECTION ---
+        // --- 7. CHART.JS DYNAMIC INJECTION ---
         let chartInstance = null;
         function renderChart(physicsScore = 0, chemScore = 0, mathScore = 0) {
             const ctx = document.getElementById('scoreChart').getContext('2d');
@@ -521,7 +634,7 @@
                 data: {
                     labels: ['Physics', 'Chemistry', 'Mathematics'],
                     datasets: [{
-                        data: [physicsScore, chemScore, mathScore], // Dynamic Data from Python!
+                        data: [physicsScore, chemScore, mathScore], 
                         backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(236, 72, 153, 0.6)', 'rgba(168, 85, 247, 0.6)'],
                         borderColor: isDark ? '#12121a' : '#ffffff',
                         borderWidth: 2
@@ -535,7 +648,7 @@
             });
         }
 
-        // --- 4. EXPORT PDF ---
+        // --- 8. EXPORT PDF ---
         function downloadPDF() {
             const buttons = document.querySelectorAll('.data-hide-pdf');
             buttons.forEach(btn => btn.style.display = 'none');
