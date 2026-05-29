@@ -248,7 +248,7 @@
                     <div id="manual-zone" class="w-full hidden flex-col gap-4 items-center">
                         <div class="w-full max-w-[200px]">
                             <p class="text-xs font-bold text-gray-500 text-center mb-1 uppercase tracking-widest">Total Score</p>
-                            <input type="number" id="manual-marks" placeholder="0 - 200" class="w-full h-16 text-center rounded-2xl glass-input px-4 font-black text-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/60 dark:bg-black/20" max="200" min="0">
+                            <input type="number" id="manual-marks" placeholder="0 - 200" oninput="if(this.value > 200) this.value = 200; if(this.value < 0) this.value = 0;" class="no-spinners w-full h-16 text-center rounded-2xl glass-input px-4 font-black text-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/60 dark:bg-black/20">
                         </div>
                         
                         <button onclick="toggleAdvanced()" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-blue-500 tracking-widest uppercase transition-colors">
@@ -256,9 +256,18 @@
                         </button>
 
                         <div id="advanced-splits" class="hidden grid-cols-3 gap-3 w-full max-w-sm bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-black/5 dark:border-white/5">
-                            <div><p class="text-[10px] text-center font-bold text-gray-500 mb-1 uppercase">Physics</p><input type="number" id="manual-phy" placeholder="0-50" class="w-full text-center rounded-xl glass-input p-2 font-bold bg-white/80 dark:bg-black/40"></div>
-                            <div><p class="text-[10px] text-center font-bold text-gray-500 mb-1 uppercase">Chemistry</p><input type="number" id="manual-chem" placeholder="0-50" class="w-full text-center rounded-xl glass-input p-2 font-bold bg-white/80 dark:bg-black/40"></div>
-                            <div><p class="text-[10px] text-center font-bold text-purple-500 mb-1 uppercase">Maths</p><input type="number" id="manual-math" placeholder="0-100" class="w-full text-center rounded-xl glass-input p-2 font-bold bg-white/80 dark:bg-black/40 border border-purple-500/30"></div>
+                            <div>
+                                <p class="text-[10px] text-center font-bold text-gray-500 mb-1 uppercase">Physics</p>
+                                <input type="number" id="manual-phy" placeholder="0-50" oninput="if(this.value > 50) this.value = 50; if(this.value < 0) this.value = 0;" class="no-spinners w-full text-center rounded-xl glass-input p-2 font-bold bg-white/80 dark:bg-black/40">
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-center font-bold text-gray-500 mb-1 uppercase">Chemistry</p>
+                                <input type="number" id="manual-chem" placeholder="0-50" oninput="if(this.value > 50) this.value = 50; if(this.value < 0) this.value = 0;" class="no-spinners w-full text-center rounded-xl glass-input p-2 font-bold bg-white/80 dark:bg-black/40">
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-center font-bold text-purple-500 mb-1 uppercase">Maths/Bio</p>
+                                <input type="number" id="manual-math" placeholder="0-100" oninput="if(this.value > 100) this.value = 100; if(this.value < 0) this.value = 0;" class="no-spinners w-full text-center rounded-xl glass-input p-2 font-bold bg-white/80 dark:bg-black/40 border border-purple-500/30">
+                            </div>
                         </div>
 
                         <button onclick="startManualMagic()" class="mt-2 py-3 px-8 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-black text-sm uppercase tracking-widest shadow-lg hover:scale-[1.03] active:scale-95 transition-all w-auto">
@@ -570,19 +579,47 @@
         }
 
         // --- 4. DATA FETCHING (MANUAL & UPLOAD) ---
+        // --- 4. DATA FETCHING (MANUAL & UPLOAD) ---
         function startManualMagic() {
             const baseData = getValidationData();
             if(!baseData) return;
 
-            let marks = document.getElementById('manual-marks').value;
-            const p = Number(document.getElementById('manual-phy').value) || 0;
-            const c = Number(document.getElementById('manual-chem').value) || 0;
-            const m = Number(document.getElementById('manual-math').value) || 0;
+            const marksRaw = document.getElementById('manual-marks').value;
+            const pRaw = document.getElementById('manual-phy').value;
+            const cRaw = document.getElementById('manual-chem').value;
+            const mRaw = document.getElementById('manual-math').value;
 
-            if (!marks) { marks = p + c + m; }
+            const hasSplits = (pRaw !== '' || cRaw !== '' || mRaw !== '');
+            let marks = Number(marksRaw);
+            const p = Number(pRaw);
+            const c = Number(cRaw);
+            const m = Number(mRaw);
 
-            if(!marks || marks < 0 || marks > 200) {
-                Swal.fire({ icon: 'warning', title: 'Invalid Marks', text: 'Enter a score between 0 and 200.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+            // 1. Check if they left everything blank
+            if (!marksRaw && !hasSplits) {
+                Swal.fire({ icon: 'warning', title: 'Missing Input', text: 'Please enter your Total Score or Subject Splits.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                return;
+            }
+
+            // 2. Strict Math Check: Total vs Splits
+            if (!marksRaw && hasSplits) {
+                marks = p + c + m; // Auto-sum if total is empty
+            } else if (marksRaw && hasSplits) {
+                // They entered BOTH total and splits. Let's make sure they didn't lie!
+                if (p + c + m !== marks) {
+                    Swal.fire({ 
+                        icon: 'error', 
+                        title: 'Math Error!', 
+                        text: `Your subject splits (Physics + Chem + Math/Bio = ${p+c+m}) do not add up to the Total Score (${marks}) you entered!`, 
+                        customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                    });
+                    return; // Stop the request
+                }
+            }
+
+            // 3. Final sanity check
+            if (marks < 0 || marks > 200) {
+                Swal.fire({ icon: 'error', title: 'Invalid Marks', text: 'MHT-CET total score must be between 0 and 200.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
                 return;
             }
 
@@ -597,7 +634,7 @@
             .then(data => { if(data.result === 'success') populateResults(data, true); else throw new Error(data.error); })
             .catch(handleError);
         }
-
+        
         function startMagic() {
             const file = fileUpload.files[0];
             const baseData = getValidationData();
