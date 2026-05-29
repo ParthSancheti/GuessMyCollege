@@ -153,7 +153,7 @@
                     </div>
                     <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm">
                         <div class="w-full h-32 rounded-2xl overflow-hidden mb-4 relative">
-                            <img src="bin/inst_2.png" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700">
+                            <img src="bin/inst_2.jpeg" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                             <span class="absolute bottom-3 left-0 right-0 text-white font-black text-3xl">02</span>
                         </div>
@@ -397,17 +397,15 @@
         </div> </div>
 
     <script>
-        // --- DOM ELEMENTS ---
+        // --- 1. DOM ELEMENTS & DROPDOWNS ---
         const initialView = document.getElementById('initial-view');
         const processingView = document.getElementById('processing-view');
         const resultsView = document.getElementById('results-view');
         const fileUpload = document.getElementById('file-upload');
         const dropZone = document.getElementById('drop-zone');
 
-        // --- 1. DYNAMIC DROPDOWN LOGIC ---
         function setupCustomDropdowns() {
-            const wrappers = document.querySelectorAll('.custom-select-wrapper');
-            wrappers.forEach(wrapper => {
+            document.querySelectorAll('.custom-select-wrapper').forEach(wrapper => {
                 const trigger = wrapper.querySelector('.dropdown-trigger');
                 const menu = wrapper.querySelector('.dropdown-menu');
                 const hiddenInput = wrapper.querySelector('input[type="hidden"]');
@@ -417,25 +415,10 @@
 
                 trigger.addEventListener('click', (e) => {
                     document.querySelectorAll('.dropdown-menu').forEach(m => {
-                        if (m !== menu && !m.classList.contains('hidden')) {
-                            m.classList.add('opacity-0', 'translate-y-[-10px]');
-                            setTimeout(() => m.classList.add('hidden'), 300);
-                        }
+                        if (m !== menu && !m.classList.contains('hidden')) m.classList.add('hidden');
                     });
-
-                    if (menu.classList.contains('hidden')) {
-                        menu.classList.remove('hidden');
-                        setTimeout(() => {
-                            menu.classList.remove('opacity-0', 'translate-y-[-10px]');
-                            menu.classList.add('opacity-100', 'translate-y-0');
-                            chevron.classList.add('rotate-180');
-                        }, 10);
-                    } else {
-                        menu.classList.remove('opacity-100', 'translate-y-0');
-                        menu.classList.add('opacity-0', 'translate-y-[-10px]');
-                        chevron.classList.remove('rotate-180');
-                        setTimeout(() => menu.classList.add('hidden'), 300);
-                    }
+                    menu.classList.toggle('hidden');
+                    chevron.classList.toggle('rotate-180');
                     e.stopPropagation();
                 });
 
@@ -445,78 +428,55 @@
                         selectedText.innerText = opt.innerText;
                         selectedText.classList.remove('text-gray-500', 'dark:text-gray-400');
                         selectedText.classList.add('text-black', 'dark:text-white');
-                        menu.classList.remove('opacity-100', 'translate-y-0');
-                        menu.classList.add('opacity-0', 'translate-y-[-10px]');
+                        menu.classList.add('hidden');
                         chevron.classList.remove('rotate-180');
-                        setTimeout(() => menu.classList.add('hidden'), 300);
                     });
                 });
             });
 
             document.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('opacity-100', 'translate-y-0');
-                    menu.classList.add('opacity-0', 'translate-y-[-10px]');
-                    setTimeout(() => menu.classList.add('hidden'), 300);
-                });
+                document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.add('hidden'));
                 document.querySelectorAll('.dropdown-trigger svg').forEach(svg => svg.classList.remove('rotate-180'));
             });
         }
         setupCustomDropdowns();
 
         // --- 2. TAB SWITCHING LOGIC ---
-        let currentMode = 'upload';
         function switchMode(mode) {
-            currentMode = mode;
             const btnUpload = document.getElementById('tab-btn-upload');
             const btnManual = document.getElementById('tab-btn-manual');
-            const dropZone = document.getElementById('drop-zone');
-            const manualZone = document.getElementById('manual-zone');
             const instructions = document.getElementById('instruction-cards');
 
             if (mode === 'upload') {
                 btnUpload.className = "flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all text-sm uppercase tracking-widest";
                 btnManual.className = "flex-1 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm uppercase tracking-widest";
-                dropZone.classList.remove('hidden');
-                dropZone.classList.add('flex');
-                manualZone.classList.add('hidden');
-                manualZone.classList.remove('flex');
+                document.getElementById('drop-zone').classList.replace('hidden', 'flex');
+                document.getElementById('manual-zone').classList.replace('flex', 'hidden');
                 instructions.style.display = 'grid'; 
             } else {
                 btnManual.className = "flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all text-sm uppercase tracking-widest";
                 btnUpload.className = "flex-1 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm uppercase tracking-widest";
-                manualZone.classList.remove('hidden');
-                manualZone.classList.add('flex');
-                dropZone.classList.add('hidden');
-                dropZone.classList.remove('flex');
+                document.getElementById('manual-zone').classList.replace('hidden', 'flex');
+                document.getElementById('drop-zone').classList.replace('flex', 'hidden');
                 instructions.style.display = 'none'; 
             }
         }
 
         function toggleAdvanced() {
             const splits = document.getElementById('advanced-splits');
-            if (splits.classList.contains('hidden')) {
-                splits.classList.remove('hidden');
-                splits.classList.add('grid');
-            } else {
-                splits.classList.add('hidden');
-                splits.classList.remove('grid');
-                document.getElementById('manual-phy').value = '';
-                document.getElementById('manual-chem').value = '';
-                document.getElementById('manual-math').value = '';
+            splits.classList.toggle('hidden');
+            splits.classList.toggle('grid');
+            if(splits.classList.contains('hidden')) {
+                ['manual-phy', 'manual-chem', 'manual-math'].forEach(id => document.getElementById(id).value = '');
             }
         }
 
-        // --- 3. CORE UI HELPERS ---
+        // --- 3. UI HELPERS & ANIMATIONS ---
         function triggerProcessingAnimation() {
-            initialView.classList.remove('active-view');
-            initialView.classList.add('hidden-view');
-            
+            initialView.classList.replace('active-view', 'hidden-view');
             setTimeout(() => {
                 initialView.style.display = 'none';
-                processingView.classList.remove('hidden-view');
-                processingView.classList.add('active-view');
-                
+                processingView.classList.replace('hidden-view', 'active-view');
                 const texts = ["Analyzing Inputs...", "Mapping Cutoffs...", "Running AI Model..."];
                 let i = 0;
                 window.txtInterval = setInterval(() => {
@@ -535,66 +495,50 @@
             document.getElementById('final-score-display').innerText = data.total_score;
             document.getElementById('ai-percentile-display').innerText = data.predicted_percentile || "N/A";
             document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
-            document.getElementById('ai-advice-display').innerText = data.ai_advice;
+            
+            // Format AI Advice with proper paragraph breaks
+            document.getElementById('ai-advice-display').innerHTML = (data.ai_advice || "").replace(/\n/g, '<br>');
 
-            if (isManual) {
-                // Hide Breakdown & Chart for Manual Mode
+            // If manual AND no splits were provided, hide chart and breakdown.
+            if (isManual && !data.has_splits) {
                 document.getElementById('subject-breakdown-panel').style.display = 'none';
                 document.getElementById('chart-panel').style.display = 'none';
-                
-                const pctDisplay = document.getElementById('ai-percentile-display');
-                pctDisplay.classList.remove('text-xl', 'md:text-2xl');
-                pctDisplay.classList.add('text-4xl', 'md:text-5xl', 'mt-4');
-                
                 const scoreCardContainer = document.getElementById('subject-breakdown-panel').parentElement;
-                scoreCardContainer.classList.remove('lg:w-7/12');
-                scoreCardContainer.classList.add('w-full', 'max-w-3xl', 'mx-auto');
+                scoreCardContainer.classList.replace('lg:w-7/12', 'w-full');
+                scoreCardContainer.classList.add('max-w-3xl', 'mx-auto');
             } else {
+                // Show chart and breakdown for HTML Upload OR Manual with Splits
                 document.getElementById('subject-breakdown-panel').style.display = 'block';
                 document.getElementById('chart-panel').style.display = 'flex';
-                
-                const pctDisplay = document.getElementById('ai-percentile-display');
-                pctDisplay.classList.remove('text-4xl', 'md:text-5xl', 'mt-4');
-                pctDisplay.classList.add('text-xl', 'md:text-2xl', 'mt-1');
-                
                 const scoreCardContainer = document.getElementById('subject-breakdown-panel').parentElement;
                 scoreCardContainer.classList.remove('w-full', 'max-w-3xl', 'mx-auto');
                 scoreCardContainer.classList.add('lg:w-7/12');
 
-                // 1. Inject Physics & Chemistry safely
-                document.getElementById('physics-correct').innerText = data.breakdown.Physics?.correct || 0;
-                document.getElementById('physics-score').innerText = data.breakdown.Physics?.score || 0;
-                document.getElementById('chemistry-correct').innerText = data.breakdown.Chemistry?.correct || 0;
-                document.getElementById('chemistry-score').innerText = data.breakdown.Chemistry?.score || 0;
+                document.getElementById('physics-correct').innerText = data.breakdown?.Physics?.correct || 0;
+                document.getElementById('physics-score').innerText = data.breakdown?.Physics?.score || 0;
+                document.getElementById('chemistry-correct').innerText = data.breakdown?.Chemistry?.correct || 0;
+                document.getElementById('chemistry-score').innerText = data.breakdown?.Chemistry?.score || 0;
                 
-                // 2. DYNAMIC PCB / PCM CHECK
                 let thirdLabel = 'Mathematics';
                 let thirdScore = 0;
 
-                if (data.breakdown.Biology) {
-                    // It's a PCB Sheet
+                if (data.breakdown?.Biology) {
                     thirdLabel = 'Biology';
                     thirdScore = data.breakdown.Biology.score || 0;
                     document.getElementById('math-correct').innerText = data.breakdown.Biology.correct || 0;
                     document.getElementById('math-score').innerText = thirdScore;
-                    
-                    // Dynamically change the HTML table label to Biology & hide the "(x2)" text
                     const labelCell = document.getElementById('math-correct').closest('tr').querySelector('td:first-child');
                     if(labelCell) labelCell.innerHTML = '<span class="text-purple-600 font-bold">Biology</span>';
                 } else {
-                    // It's a PCM Sheet
                     thirdLabel = 'Mathematics';
-                    thirdScore = data.breakdown.Mathematics?.score || 0;
-                    document.getElementById('math-correct').innerText = data.breakdown.Mathematics?.correct || 0;
+                    thirdScore = data.breakdown?.Mathematics?.score || 0;
+                    document.getElementById('math-correct').innerText = data.breakdown?.Mathematics?.correct || 0;
                     document.getElementById('math-score').innerText = thirdScore;
-                    
-                    // Ensure the HTML table label says Mathematics & show "(x2)" text
                     const labelCell = document.getElementById('math-correct').closest('tr').querySelector('td:first-child');
                     if(labelCell) labelCell.innerHTML = '<span class="text-purple-600 font-bold">Mathematics</span> <span class="text-xs text-gray-500 font-normal ml-1">(x2)</span>';
                 }
                 
-                // Pass the dynamic label to the Chart function
-                renderChart(data.breakdown.Physics?.score || 0, data.breakdown.Chemistry?.score || 0, thirdScore, thirdLabel);
+                renderChart(data.breakdown?.Physics?.score || 0, data.breakdown?.Chemistry?.score || 0, thirdScore, thirdLabel);
             }
 
             processingView.classList.replace('active-view', 'hidden-view');
@@ -607,22 +551,13 @@
 
         function handleError(err) {
             clearInterval(window.txtInterval);
-            processingView.classList.remove('active-view');
-            processingView.classList.add('hidden-view');
-            
+            processingView.classList.replace('active-view', 'hidden-view');
             setTimeout(() => {
                 processingView.style.display = 'none';
                 initialView.style.display = 'flex';
-                initialView.classList.remove('hidden-view');
-                initialView.classList.add('active-view');
+                initialView.classList.replace('hidden-view', 'active-view');
                 fileUpload.value = '';
-                
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'System Notice', 
-                    text: err.message, 
-                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' } 
-                });
+                Swal.fire({ icon: 'error', title: 'System Notice', text: err.message, customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' } });
             }, 400);
         }
 
@@ -630,101 +565,65 @@
             const cat = document.getElementById('calc-category').value;
             const date = document.getElementById('calc-date').value;
             const shift = document.getElementById('calc-shift').value;
-            
-            if(!cat) {
-                Swal.fire({ icon: 'warning', title: 'Category Required', text: 'Please select your category.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
-                return null;
-            }
-            
-            let combinedShift = "";
-            if (date || shift) { combinedShift = `${date} ${shift}`.trim(); }
-            return { category: cat, shift: combinedShift };
+            if(!cat) { Swal.fire({ icon: 'warning', title: 'Category Required', text: 'Please select your category.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }}); return null; }
+            return { category: cat, shift: `${date} ${shift}`.trim() };
         }
 
-        // --- 4. MANUAL CALCULATION LOGIC ---
+        // --- 4. DATA FETCHING (MANUAL & UPLOAD) ---
         function startManualMagic() {
             const baseData = getValidationData();
             if(!baseData) return;
 
             let marks = document.getElementById('manual-marks').value;
-            const p = document.getElementById('manual-phy').value;
-            const c = document.getElementById('manual-chem').value;
-            const m = document.getElementById('manual-math').value;
+            const p = Number(document.getElementById('manual-phy').value) || 0;
+            const c = Number(document.getElementById('manual-chem').value) || 0;
+            const m = Number(document.getElementById('manual-math').value) || 0;
 
-            if (!marks && (p || c || m)) {
-                marks = (Number(p) || 0) + (Number(c) || 0) + (Number(m) || 0);
-            }
+            if (!marks) { marks = p + c + m; }
 
             if(!marks || marks < 0 || marks > 200) {
-                Swal.fire({ icon: 'warning', title: 'Invalid Marks', text: 'Please enter a valid score between 0 and 200.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                Swal.fire({ icon: 'warning', title: 'Invalid Marks', text: 'Enter a score between 0 and 200.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
                 return;
             }
 
             triggerProcessingAnimation();
-
-            const payload = { marks: marks, category: baseData.category, shift: baseData.shift, exam_type: "MHT-CET" };
 
             fetch('https://parthsancheti.pythonanywhere.com/calculate-manual', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ marks: marks, p: p, c: c, m: m, category: baseData.category, shift: baseData.shift, exam_type: "MHT-CET" })
             })
-            .then(res => res.json())
-            .then(data => {
-                if(data.result === 'success') {
-                    populateResults(data, true);
-                } else throw new Error(data.error);
-            })
+            .then(res => { if(!res.ok) throw new Error("Server Error: Did you reload PythonAnywhere?"); return res.json(); })
+            .then(data => { if(data.result === 'success') populateResults(data, true); else throw new Error(data.error); })
             .catch(handleError);
         }
 
-        // --- 5. HTML UPLOAD LOGIC ---
         function startMagic() {
             const file = fileUpload.files[0];
             const baseData = getValidationData();
-            if(!baseData || !file) {
-                fileUpload.value = ''; 
-                return;
-            }
+            if(!baseData || !file) { fileUpload.value = ''; return; }
 
             triggerProcessingAnimation();
-
             const formData = new FormData();
             formData.append('file', file);
             formData.append('category', baseData.category);
             formData.append('shift', baseData.shift); 
 
-            fetch('https://parthsancheti.pythonanywhere.com/calculate-score', {
-                method: 'POST',
-                body: formData
-            })
+            fetch('https://parthsancheti.pythonanywhere.com/calculate-score', { method: 'POST', body: formData })
             .then(res => res.json())
-            .then(data => {
-                if(data.result === 'success') populateResults(data, false);
-                else throw new Error(data.error); 
-            })
+            .then(data => { if(data.result === 'success') populateResults(data, false); else throw new Error(data.error); })
             .catch(handleError);
         }
 
-        // --- 6. DRAG & DROP EVENTS ---
+        // --- 5. EVENTS & CHART ---
         fileUpload.addEventListener('change', function(e) { if(this.files && this.files.length > 0) startMagic(); });
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('border-purple-500', 'bg-purple-500/10');
-        });
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('border-purple-500', 'bg-purple-500/10');
-        });
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-purple-500', 'bg-purple-500/10'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-purple-500', 'bg-purple-500/10'));
         dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('border-purple-500', 'bg-purple-500/10');
-            if(e.dataTransfer.files.length > 0) {
-                fileUpload.files = e.dataTransfer.files;
-                startMagic();
-            }
+            e.preventDefault(); dropZone.classList.remove('border-purple-500', 'bg-purple-500/10');
+            if(e.dataTransfer.files.length > 0) { fileUpload.files = e.dataTransfer.files; startMagic(); }
         });
 
-        // --- 7. CHART.JS DYNAMIC INJECTION ---
         let chartInstance = null;
         function renderChart(physicsScore = 0, chemScore = 0, thirdScore = 0, thirdLabel = 'Mathematics') {
             const ctx = document.getElementById('scoreChart').getContext('2d');
@@ -733,16 +632,14 @@
             const gridColor = isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
 
             if (chartInstance) chartInstance.destroy();
-
             chartInstance = new Chart(ctx, {
                 type: 'polarArea',
                 data: {
-                    labels: ['Physics', 'Chemistry', thirdLabel], // <-- Dynamic Label applied here!
+                    labels: ['Physics', 'Chemistry', thirdLabel],
                     datasets: [{
                         data: [physicsScore, chemScore, thirdScore], 
                         backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(236, 72, 153, 0.6)', 'rgba(168, 85, 247, 0.6)'],
-                        borderColor: isDark ? '#12121a' : '#ffffff',
-                        borderWidth: 2
+                        borderColor: isDark ? '#12121a' : '#ffffff', borderWidth: 2
                     }]
                 },
                 options: {
@@ -752,7 +649,8 @@
                 }
             });
         }
-        // --- 8. EXPORT PDF ---
+
+        // --- 6. EXPORT PDF ---
         function downloadPDF() {
             const buttons = document.querySelectorAll('.data-hide-pdf');
             buttons.forEach(btn => btn.style.display = 'none');
@@ -762,22 +660,10 @@
             
             if(isDark) element.style.backgroundColor = '#12121a';
             else element.style.backgroundColor = '#f0f4f8';
-            element.style.padding = '20px';
-            element.style.borderRadius = '24px';
+            element.style.padding = '20px'; element.style.borderRadius = '24px';
 
-            const opt = {
-                margin:       0.5,
-                filename:     'MHTCET_Score_Report.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, logging: false },
-                jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-            };
-            
-            html2pdf().set(opt).from(element).save().then(() => {
-                if(isDark) element.style.backgroundColor = '';
-                else element.style.backgroundColor = '';
-                element.style.padding = '';
-                element.style.borderRadius = '';
+            html2pdf().set({ margin: 0.5, filename: 'MHTCET_Score_Report.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'in', format: 'a4', orientation: 'landscape' } }).from(element).save().then(() => {
+                element.style.backgroundColor = ''; element.style.padding = ''; element.style.borderRadius = '';
                 buttons.forEach(btn => btn.style.display = ''); 
             });
         }
