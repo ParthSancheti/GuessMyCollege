@@ -502,26 +502,45 @@
             localStorage.setItem('gmc-marks', data.total_score);
 
             document.getElementById('final-score-display').innerText = data.total_score;
-            document.getElementById('ai-percentile-display').innerText = data.predicted_percentile || "N/A";
-            document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
             
-            // Format AI Advice with proper paragraph breaks
+            // Format Percentile safely
+            let pctText = data.predicted_percentile || "Calculation Failed";
+            if (!pctText.includes('%')) pctText += " %ile";
+            document.getElementById('ai-percentile-display').innerText = pctText;
+            
+            document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
             document.getElementById('ai-advice-display').innerHTML = (data.ai_advice || "").replace(/\n/g, '<br>');
 
-            // If manual AND no splits were provided, hide chart and breakdown.
+            const breakdownPanel = document.getElementById('subject-breakdown-panel');
+            const chartPanel = document.getElementById('chart-panel');
+            const scoreCardContainer = breakdownPanel.parentElement;
+            const pctDisplay = document.getElementById('ai-percentile-display');
+
+            // EXACT FIX: If Manual AND no splits, NUKE the chart and breakdown!
             if (isManual && !data.has_splits) {
-                document.getElementById('subject-breakdown-panel').style.display = 'none';
-                document.getElementById('chart-panel').style.display = 'none';
-                const scoreCardContainer = document.getElementById('subject-breakdown-panel').parentElement;
-                scoreCardContainer.classList.replace('lg:w-7/12', 'w-full');
-                scoreCardContainer.classList.add('max-w-3xl', 'mx-auto');
+                // 1. Hide Breakdown & Chart completely
+                breakdownPanel.classList.add('hidden');
+                chartPanel.classList.add('hidden');
+                chartPanel.classList.remove('flex', 'md:flex'); // Kill tailwind flex
+                
+                // 2. Center the main score card
+                scoreCardContainer.classList.remove('lg:w-7/12');
+                scoreCardContainer.classList.add('w-full', 'max-w-3xl', 'mx-auto');
+                
+                // 3. Make Percentile MASSIVE
+                pctDisplay.classList.remove('text-xl', 'md:text-2xl');
+                pctDisplay.classList.add('text-4xl', 'md:text-5xl', 'mt-4', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-500');
             } else {
-                // Show chart and breakdown for HTML Upload OR Manual with Splits
-                document.getElementById('subject-breakdown-panel').style.display = 'block';
-                document.getElementById('chart-panel').style.display = 'flex';
-                const scoreCardContainer = document.getElementById('subject-breakdown-panel').parentElement;
+                // Restore UI for HTML Uploads or Manual Splits
+                breakdownPanel.classList.remove('hidden');
+                chartPanel.classList.remove('hidden');
+                chartPanel.classList.add('flex');
+                
                 scoreCardContainer.classList.remove('w-full', 'max-w-3xl', 'mx-auto');
                 scoreCardContainer.classList.add('lg:w-7/12');
+
+                pctDisplay.classList.remove('text-4xl', 'md:text-5xl', 'mt-4', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-500');
+                pctDisplay.classList.add('text-xl', 'md:text-2xl', 'mt-1');
 
                 document.getElementById('physics-correct').innerText = data.breakdown?.Physics?.correct || 0;
                 document.getElementById('physics-score').innerText = data.breakdown?.Physics?.score || 0;
@@ -557,7 +576,7 @@
                 resultsView.classList.add('animate-pop-in');
             }, 400);
         }
-
+        
         function handleError(err) {
             clearInterval(window.txtInterval);
             processingView.classList.replace('active-view', 'hidden-view');
@@ -634,7 +653,7 @@
             .then(data => { if(data.result === 'success') populateResults(data, true); else throw new Error(data.error); })
             .catch(handleError);
         }
-        
+
         function startMagic() {
             const file = fileUpload.files[0];
             const baseData = getValidationData();
