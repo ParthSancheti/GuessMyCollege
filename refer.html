@@ -209,7 +209,7 @@ function copyCode() {
     const code = localStorage.getItem('gmc-refer-code') || '';
     if (!code) return;
     // Create the full auto-apply link
-    const link = `https://guessmycollege.in/?ref=${code}`;
+    const link = `https://guessmycollege.com/?ref=${code}`;
     navigator.clipboard.writeText(link).then(() => {
         Swal.fire({ toast:true, position:'top-end', icon:'success',
             title:'Invite Link Copied! 🔗', text: 'Send it to your friends.', showConfirmButton:false, timer:2000, customClass: {popup: 'glass-swal'} });
@@ -219,7 +219,7 @@ function copyCode() {
 // ── Share WhatsApp ──────────────────────────────
 function shareWA() {
     const code = localStorage.getItem('gmc-refer-code') || '';
-    const link = `https://guessmycollege.in/?ref=${code}`;
+    const link = `https://guessmycollege.com/?ref=${code}`;
     const msg  = encodeURIComponent(
         `Bro! Use my invite link to get 20% OFF on Guess My College PRO Predictor 🎓\n\nClick here to auto-apply discount:\n${link}\n\nLet's crack admissions together! 💪`
     );

@@ -307,7 +307,7 @@
                             <div class="inline-flex flex-col items-end">
                                 <span class="text-xs font-bold text-purple-500 uppercase flex items-center gap-1">
                                     <svg class="w-3 h-3 animate-spin-slow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"></path></svg>
-                                    AI %ile Estimate
+                                    AI Percentile Estimate
                                 </span>
                                 <span id="ai-percentile-display" class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500 mt-1 tracking-tight">
                                     Analyzing...
@@ -505,7 +505,7 @@
             
             // Format Percentile safely
             let pctText = data.predicted_percentile || "Calculation Failed";
-            if (!pctText.includes('%')) pctText += " %ile";
+            if (!pctText.includes('%')) pctText += " Percentile";
             document.getElementById('ai-percentile-display').innerText = pctText;
             
             document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
@@ -516,7 +516,6 @@
             const scoreCardContainer = breakdownPanel.parentElement;
             const pctDisplay = document.getElementById('ai-percentile-display');
 
-            // EXACT FIX: If Manual AND no splits, NUKE the chart and breakdown!
             if (isManual && !data.has_splits) {
                 // Completely nuke the panels
                 breakdownPanel.classList.add('hidden');
