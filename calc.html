@@ -49,14 +49,6 @@
         @keyframes hue-shift { 0% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(90deg); } 100% { filter: hue-rotate(0deg); } }
         .gemini-bg { animation: hue-shift 20s infinite ease-in-out; }
 
-        /* Hide Number Input Spinners */
-        .no-spinners::-webkit-inner-spin-button, 
-        .no-spinners::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            margin: 0; 
-        }
-        .no-spinners { -moz-appearance: textfield; }
-
         /* Premium Glass */
         .true-glass {
             background: rgba(255, 255, 255, 0.45);
@@ -125,137 +117,75 @@
 
             <div id="initial-view" class="view-section active-view w-full flex flex-col items-center justify-center flex-1">
                 
-                <div class="text-center mb-8">
+                <div class="text-center mb-10">
                     <h1 class="text-4xl md:text-6xl font-black tracking-tight mb-3">Score <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500">Calculator.</span></h1>
+                    <p class="text-gray-600 dark:text-gray-400 font-medium text-lg md:text-xl">Upload your HTML Response Sheet to parse your exact marks.</p>
                 </div>
 
-                <div class="flex w-full max-w-md gap-2 p-1.5 bg-white/40 dark:bg-black/20 rounded-2xl border border-black/5 dark:border-white/5 mb-8 mx-auto shadow-sm">
-                    <button id="tab-btn-upload" onclick="switchMode('upload')" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all text-sm uppercase tracking-widest">HTML Upload</button>
-                    <button id="tab-btn-manual" onclick="switchMode('manual')" class="flex-1 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm uppercase tracking-widest">Manual Marks</button>
-                </div>
-
-                <div id="instruction-cards" class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-10 transition-all duration-300 origin-top">
-                    <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl mb-10">
+                    <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm hover:shadow-xl">
                         <div class="w-full h-32 rounded-2xl overflow-hidden mb-4 relative">
                             <img src="bin/inst_1.png" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                             <span class="absolute bottom-3 left-0 right-0 text-white font-black text-3xl">01</span>
                         </div>
-                        <h3 class="font-bold text-lg mb-1">Open Portal</h3>
-                        <p class="text-xs text-gray-600 dark:text-gray-400 mb-3">Log in to the official MHT-CET portal and view your sheet.</p>
-                        <a href="https://cetcell.mahacet.org/" target="_blank" class="mt-auto text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 hover:text-blue-500 transition-colors">Open CET Site ↗</a>
+                        <h3 class="font-bold text-lg mb-2">Open Portal</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Log in to the official MHT-CET portal and view your response sheet.</p>
+                        <a href="https://cetcell.mahacet.org/" target="_blank" class="mt-auto text-xs font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 hover:text-blue-500 transition-colors">Open CET Site ↗</a>
                     </div>
                     
-                    <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm">
+                    <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm hover:shadow-xl">
                         <div class="w-full h-32 rounded-2xl overflow-hidden mb-4 relative">
                             <img src="bin/inst_2.png" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                             <span class="absolute bottom-3 left-0 right-0 text-white font-black text-3xl">02</span>
                         </div>
-                        <h3 class="font-bold text-lg mb-1">Ctrl + S</h3>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">Press Ctrl+S (or Cmd+S on Mac) to save the webpage as an HTML file.</p>
+                        <h3 class="font-bold text-lg mb-2">Ctrl + P (Save HTML)</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Right click on the page or press Ctrl+P to save your sheet.</p>
                     </div>
 
-                    <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm">
+                    <div class="bg-white/40 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-3xl p-5 flex flex-col items-center text-center group hover:-translate-y-2 transition-transform shadow-sm hover:shadow-xl">
                         <div class="w-full h-32 rounded-2xl overflow-hidden mb-4 relative">
                             <img src="bin/inst_3.png" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
                             <span class="absolute bottom-3 left-0 right-0 text-white font-black text-3xl">03</span>
                         </div>
-                        <h3 class="font-bold text-lg mb-1">Upload File</h3>
-                        <p class="text-xs text-gray-600 dark:text-gray-400">Drag and drop that downloaded HTML file directly into the box below.</p>
+                        <h3 class="font-bold text-lg mb-2">Upload File</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Drag and drop that downloaded HTML file directly into the box below.</p>
                     </div>
                 </div>
 
-                <div class="w-full max-w-4xl flex flex-col gap-6">
+                <div class="w-full max-w-2xl flex flex-col gap-6">
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
-                        
-                        <div class="relative custom-select-wrapper w-full">
-                            <input type="hidden" id="calc-category">
-                            <div class="w-full rounded-2xl glass-input px-5 py-4 font-bold text-sm cursor-pointer flex justify-between items-center transition-all bg-white/60 dark:bg-black/20 dropdown-trigger">
-                                <span class="selected-text text-gray-500 dark:text-gray-400">Select Category</span>
-                                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                            <div class="absolute z-[60] w-full mt-2 hidden rounded-2xl glass-input bg-white/95 dark:bg-[#12121a]/95 backdrop-blur-3xl overflow-hidden shadow-2xl border border-black/10 dark:border-white/10 dropdown-menu transition-all">
-                                <div class="max-h-56 overflow-y-auto custom-scrollbar py-2 text-sm">
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="OPEN">OPEN / General</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="OBC">OBC</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="EWS">EWS</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="SC">SC</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="ST">ST</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="NT/VJ/DT">NT / VJ / DT</div>
-                                </div>
+                    <div class="relative custom-select-wrapper w-full" id="category-wrapper">
+                        <input type="hidden" name="category" id="calc-category">
+                        <div class="w-full rounded-2xl glass-input px-5 py-4 font-bold text-lg cursor-pointer flex justify-between items-center transition-all hover:shadow-md bg-white/60 dark:bg-black/20 dropdown-trigger">
+                            <span class="selected-text text-gray-500 dark:text-gray-400">Select Category (Required for AI Analysis)</span>
+                            <svg class="w-5 h-5 transition-transform duration-300 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
+                        <div class="absolute z-[60] w-full mt-2 hidden rounded-2xl glass-input bg-white/95 dark:bg-[#12121a]/95 backdrop-blur-3xl overflow-hidden shadow-2xl border border-black/10 dark:border-white/10 dropdown-menu opacity-0 transition-all duration-300 translate-y-[-10px]">
+                            <div class="max-h-64 overflow-y-auto custom-scrollbar py-2">
+                                <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="OPEN">OPEN / General</div>
+                                <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="OBC">OBC</div>
+                                <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="EWS">EWS</div>
+                                <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="SC">SC</div>
+                                <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="ST">ST</div>
+                                <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="NT/VJ/DT">NT / VJ / DT</div>
                             </div>
                         </div>
-
-                        <div class="relative custom-select-wrapper w-full">
-                            <input type="hidden" id="calc-date">
-                            <div class="w-full rounded-2xl glass-input px-5 py-4 font-bold text-sm cursor-pointer flex justify-between items-center transition-all bg-white/60 dark:bg-black/20 dropdown-trigger">
-                                <span class="selected-text text-gray-500 dark:text-gray-400">Exam Date</span>
-                                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                            <div class="absolute z-[60] w-full mt-2 hidden rounded-2xl glass-input bg-white/95 dark:bg-[#12121a]/95 backdrop-blur-3xl overflow-hidden shadow-2xl border border-black/10 dark:border-white/10 dropdown-menu transition-all">
-                                <div class="max-h-56 overflow-y-auto custom-scrollbar py-2 text-sm">
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="11 April 2026">11 April 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="13 April 2026">13 April 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="14 April 2026">14 April 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="15 April 2026">15 April 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="16 April 2026">16 April 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="12 May 2026">12 May 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="13 May 2026">13 May 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="14 May 2026">14 May 2026</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="Other">Other</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="relative custom-select-wrapper w-full">
-                            <input type="hidden" id="calc-shift">
-                            <div class="w-full rounded-2xl glass-input px-5 py-4 font-bold text-sm cursor-pointer flex justify-between items-center transition-all bg-white/60 dark:bg-black/20 dropdown-trigger">
-                                <span class="selected-text text-gray-500 dark:text-gray-400">Shift</span>
-                                <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                            </div>
-                            <div class="absolute z-[60] w-full mt-2 hidden rounded-2xl glass-input bg-white/95 dark:bg-[#12121a]/95 backdrop-blur-3xl overflow-hidden shadow-2xl border border-black/10 dark:border-white/10 dropdown-menu transition-all">
-                                <div class="max-h-56 overflow-y-auto custom-scrollbar py-2 text-sm">
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="PCM_S1">PCM Shift 1 (AM)</div>
-                                    <div class="px-5 py-3 hover:bg-purple-100 dark:hover:bg-purple-900/40 cursor-pointer font-bold transition-colors" data-value="PCM_S2">PCM Shift 2 (PM)</div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
 
-                    <label for="file-upload" id="drop-zone" class="w-full h-56 rounded-3xl border-2 border-dashed border-purple-500/50 hover:border-purple-400 bg-gradient-to-b from-purple-500/5 to-blue-500/5 transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden shadow-inner">
-                        <div class="w-16 h-16 rounded-full bg-white dark:bg-black/50 shadow-md flex items-center justify-center mb-4 group-hover:scale-110 transition-all z-10">
+                    <label for="file-upload" id="drop-zone" class="w-full h-56 rounded-3xl border-2 border-dashed border-purple-500/50 hover:border-purple-400 bg-gradient-to-b from-purple-500/5 to-blue-500/5 hover:from-purple-500/10 hover:to-blue-500/10 transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden shadow-inner">
+                        <div class="w-16 h-16 rounded-full bg-white dark:bg-black/50 shadow-md flex items-center justify-center mb-4 group-hover:scale-110 group-hover:shadow-purple-500/30 transition-all relative z-10">
                             <svg class="w-7 h-7 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
                         </div>
-                        <span class="text-xl font-black relative z-10">Drop Response Sheet Here</span>
-                        <span class="text-sm font-bold text-gray-500 mt-2 relative z-10">or click to browse (.html, .htm)</span>
-                        <input type="file" id="file-upload" class="hidden" accept=".html,.htm,.mht" onclick="this.value = null">
-                    </label>
-
-                    <div id="manual-zone" class="w-full hidden flex-col gap-5 items-center">
-                        <div class="w-full max-w-sm">
-                            <input type="number" id="manual-marks" placeholder="Total Marks (out of 200)" class="no-spinners w-full h-20 text-center rounded-[2rem] glass-input px-5 py-4 font-black text-3xl focus:outline-none focus:ring-2 focus:ring-purple-500 bg-white/60 dark:bg-black/20 shadow-inner" max="200" min="0">
-                        </div>
+                        <span class="text-xl font-black text-black dark:text-white relative z-10">Drop Response Sheet Here</span>
+                        <span class="text-sm font-bold text-gray-500 mt-2 relative z-10">or click to browse (.html, .mht)</span>
                         
-                        <div class="w-full max-w-sm text-right">
-                            <button onclick="toggleAdvanced()" class="text-xs font-bold text-purple-600 dark:text-purple-400 hover:text-blue-500 tracking-widest uppercase transition-colors">
-                                + Add Subject Splits (Optional)
-                            </button>
-                        </div>
-
-                        <div id="advanced-splits" class="hidden grid-cols-3 gap-3 w-full max-w-md bg-black/5 dark:bg-white/5 p-4 rounded-2xl border border-black/5 dark:border-white/5">
-                            <input type="number" id="manual-phy" placeholder="Physics" class="no-spinners w-full text-center rounded-xl glass-input p-3 font-bold bg-white/80 dark:bg-black/40">
-                            <input type="number" id="manual-chem" placeholder="Chemistry" class="no-spinners w-full text-center rounded-xl glass-input p-3 font-bold bg-white/80 dark:bg-black/40">
-                            <input type="number" id="manual-math" placeholder="Maths" class="no-spinners w-full text-center rounded-xl glass-input p-3 font-bold bg-white/80 dark:bg-black/40">
-                        </div>
-
-                        <button onclick="startManualMagic()" class="mt-2 py-3 px-10 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white font-black text-sm uppercase tracking-widest shadow-lg hover:scale-[1.03] active:scale-95 transition-all w-auto">
-                            Get Percentile
-                        </button>
-                    </div>
+                        <input type="file" id="file-upload" class="hidden" accept=".html,.htm,.mht" onclick="this.value = null">
+                        
+                        <div class="absolute inset-0 bg-purple-500/0 group-hover:bg-purple-500/5 transition-colors"></div>
+                    </label>
 
                 </div>
             </div>
@@ -276,7 +206,7 @@
                     
                     <div class="w-full lg:w-7/12 flex flex-col gap-6">
                         
-                        <div id="chart-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
+                        <div class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 flex items-center justify-between shadow-sm relative overflow-hidden">
                             <div class="absolute right-[-10%] top-[-50%] w-48 h-48 bg-purple-500/20 blur-[40px] rounded-full pointer-events-none"></div>
                             <div class="relative z-10">
                                 <p class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">Final Score</p>
@@ -301,7 +231,7 @@
                         </div>
                         </div>
 
-                        <div id="subject-breakdown-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 overflow-hidden shadow-sm">
+                        <div class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 overflow-hidden shadow-sm">
                             <h3 class="text-xl font-black mb-4">Subject Breakdown</h3>
                             <div class="w-full overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
@@ -355,7 +285,7 @@
 
                     <div class="w-full lg:w-5/12 flex flex-col gap-6 h-full">
                         
-                        <div id="chart-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
+                        <div class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
                             <h3 class="text-xl font-black mb-4 w-full text-left">Performance Matrix</h3>
                             <div class="relative w-full max-w-[280px] aspect-square flex-1 flex items-center justify-center">
                                 <canvas id="scoreChart"></canvas>
@@ -388,312 +318,176 @@
         </div> </div>
 
     <script>
-        // --- DOM ELEMENTS ---
+        // --- 1. CUSTOM DROPDOWN LOGIC ---
+        function setupCustomDropdown() {
+            const wrapper = document.getElementById('category-wrapper');
+            const trigger = wrapper.querySelector('.dropdown-trigger');
+            const menu = wrapper.querySelector('.dropdown-menu');
+            const hiddenInput = document.getElementById('calc-category');
+            const selectedText = wrapper.querySelector('.selected-text');
+            const options = menu.querySelectorAll('div[data-value]');
+            const chevron = wrapper.querySelector('svg');
+
+            trigger.addEventListener('click', (e) => {
+                if (menu.classList.contains('hidden')) {
+                    menu.classList.remove('hidden');
+                    setTimeout(() => {
+                        menu.classList.remove('opacity-0', 'translate-y-[-10px]');
+                        menu.classList.add('opacity-100', 'translate-y-0');
+                        chevron.classList.add('rotate-180');
+                    }, 10);
+                } else {
+                    menu.classList.remove('opacity-100', 'translate-y-0');
+                    menu.classList.add('opacity-0', 'translate-y-[-10px]');
+                    chevron.classList.remove('rotate-180');
+                    setTimeout(() => menu.classList.add('hidden'), 300);
+                }
+                e.stopPropagation();
+            });
+
+            options.forEach(opt => {
+                opt.addEventListener('click', () => {
+                    const val = opt.getAttribute('data-value');
+                    hiddenInput.value = val;
+                    selectedText.innerText = opt.innerText;
+                    selectedText.classList.remove('text-gray-500', 'dark:text-gray-400');
+                    selectedText.classList.add('text-black', 'dark:text-white');
+                    
+                    menu.classList.remove('opacity-100', 'translate-y-0');
+                    menu.classList.add('opacity-0', 'translate-y-[-10px]');
+                    chevron.classList.remove('rotate-180');
+                    setTimeout(() => menu.classList.add('hidden'), 300);
+                });
+            });
+
+            document.addEventListener('click', () => {
+                menu.classList.remove('opacity-100', 'translate-y-0');
+                menu.classList.add('opacity-0', 'translate-y-[-10px]');
+                chevron.classList.remove('rotate-180');
+                setTimeout(() => menu.classList.add('hidden'), 300);
+            });
+        }
+        setupCustomDropdown();
+
+        // --- 2. THE REAL PYTHON BACKEND LOGIC ---
         const initialView = document.getElementById('initial-view');
         const processingView = document.getElementById('processing-view');
         const resultsView = document.getElementById('results-view');
         const fileUpload = document.getElementById('file-upload');
         const dropZone = document.getElementById('drop-zone');
-        
-        // --- 1. DYNAMIC DROPDOWN LOGIC ---
-        function setupCustomDropdowns() {
-            const wrappers = document.querySelectorAll('.custom-select-wrapper');
+        const categoryInput = document.getElementById('calc-category');
+
+        function startMagic() {
+            const file = fileUpload.files[0];
             
-            wrappers.forEach(wrapper => {
-                const trigger = wrapper.querySelector('.dropdown-trigger');
-                const menu = wrapper.querySelector('.dropdown-menu');
-                const hiddenInput = wrapper.querySelector('input[type="hidden"]');
-                const selectedText = wrapper.querySelector('.selected-text');
-                const options = menu.querySelectorAll('div[data-value]');
-                const chevron = wrapper.querySelector('svg');
-
-                trigger.addEventListener('click', (e) => {
-                    // Close others first
-                    document.querySelectorAll('.dropdown-menu').forEach(m => {
-                        if (m !== menu && !m.classList.contains('hidden')) {
-                            m.classList.add('opacity-0', 'translate-y-[-10px]');
-                            setTimeout(() => m.classList.add('hidden'), 300);
-                        }
-                    });
-
-                    if (menu.classList.contains('hidden')) {
-                        menu.classList.remove('hidden');
-                        setTimeout(() => {
-                            menu.classList.remove('opacity-0', 'translate-y-[-10px]');
-                            menu.classList.add('opacity-100', 'translate-y-0');
-                            chevron.classList.add('rotate-180');
-                        }, 10);
-                    } else {
-                        menu.classList.remove('opacity-100', 'translate-y-0');
-                        menu.classList.add('opacity-0', 'translate-y-[-10px]');
-                        chevron.classList.remove('rotate-180');
-                        setTimeout(() => menu.classList.add('hidden'), 300);
-                    }
-                    e.stopPropagation();
+            if(!categoryInput.value) {
+                Swal.fire({
+                    icon: 'warning', title: 'Category Required', text: 'Please select your category first so the AI can map your cutoffs accurately.',
+                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
                 });
-
-                options.forEach(opt => {
-                    opt.addEventListener('click', () => {
-                        hiddenInput.value = opt.getAttribute('data-value');
-                        selectedText.innerText = opt.innerText;
-                        selectedText.classList.remove('text-gray-500', 'dark:text-gray-400');
-                        selectedText.classList.add('text-black', 'dark:text-white');
-                        
-                        menu.classList.remove('opacity-100', 'translate-y-0');
-                        menu.classList.add('opacity-0', 'translate-y-[-10px]');
-                        chevron.classList.remove('rotate-180');
-                        setTimeout(() => menu.classList.add('hidden'), 300);
-                    });
-                });
-            });
-
-            document.addEventListener('click', () => {
-                document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                    menu.classList.remove('opacity-100', 'translate-y-0');
-                    menu.classList.add('opacity-0', 'translate-y-[-10px]');
-                    setTimeout(() => menu.classList.add('hidden'), 300);
-                });
-                document.querySelectorAll('.dropdown-trigger svg').forEach(svg => svg.classList.remove('rotate-180'));
-            });
-        }
-        setupCustomDropdowns();
-
-        // --- 2. TAB SWITCHING LOGIC ---
-        let currentMode = 'upload';
-        function switchMode(mode) {
-            currentMode = mode;
-            const btnUpload = document.getElementById('tab-btn-upload');
-            const btnManual = document.getElementById('tab-btn-manual');
-            const dropZone = document.getElementById('drop-zone');
-            const manualZone = document.getElementById('manual-zone');
-            const instructions = document.getElementById('instruction-cards');
-
-            if (mode === 'upload') {
-                btnUpload.className = "flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all text-sm uppercase tracking-widest";
-                btnManual.className = "flex-1 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm uppercase tracking-widest";
-                
-                dropZone.classList.remove('hidden');
-                dropZone.classList.add('flex');
-                manualZone.classList.add('hidden');
-                manualZone.classList.remove('flex');
-                
-                instructions.style.display = 'grid';
-                setTimeout(() => instructions.classList.remove('opacity-0', 'scale-95'), 50);
-            } else {
-                btnManual.className = "flex-1 py-2.5 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white font-bold shadow-md transition-all text-sm uppercase tracking-widest";
-                btnUpload.className = "flex-1 py-2.5 rounded-xl text-gray-600 dark:text-gray-400 font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all text-sm uppercase tracking-widest";
-                
-                manualZone.classList.remove('hidden');
-                manualZone.classList.add('flex');
-                dropZone.classList.add('hidden');
-                dropZone.classList.remove('flex');
-
-                instructions.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => instructions.style.display = 'none', 300);
+                fileUpload.value = ''; 
+                return;
             }
-        }
 
-        // --- 3. ADVANCED SPLITS TOGGLE ---
-        function toggleAdvanced() {
-            const splits = document.getElementById('advanced-splits');
-            if (splits.classList.contains('hidden')) {
-                splits.classList.remove('hidden');
-                splits.classList.add('grid');
-            } else {
-                splits.classList.add('hidden');
-                splits.classList.remove('grid');
-                document.getElementById('manual-phy').value = '';
-                document.getElementById('manual-chem').value = '';
-                document.getElementById('manual-math').value = '';
-            }
-        }
+            if(!file) return;
 
-        // --- 4. CORE UI HELPERS ---
-        function triggerProcessingAnimation() {
+            // Hide Initial View
             initialView.classList.remove('active-view');
             initialView.classList.add('hidden-view');
-            
+
+            // Show Processing Core
             setTimeout(() => {
                 initialView.style.display = 'none';
                 processingView.classList.remove('hidden-view');
                 processingView.classList.add('active-view');
                 
-                const texts = ["Analyzing Inputs...", "Mapping Cutoffs...", "Running AI Model..."];
+                // Animate AI Text
+                const texts = ["Extracting HTML Nodes...", "Mapping Category Data...", "Simulating AI Predictions..."];
                 let i = 0;
-                window.txtInterval = setInterval(() => {
+                const txtInterval = setInterval(() => {
                     i++;
                     if(i < texts.length) document.getElementById('magic-text').innerText = texts[i];
                 }, 900);
-            }, 400);
-        }
 
-        function populateResults(data, isManual = false) {
-            clearInterval(window.txtInterval);
-            
-            localStorage.setItem('gmc-category', data.category);
-            localStorage.setItem('gmc-marks', data.total_score);
+                // ACTUAL API CALL TO PYTHON BACKEND
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('category', categoryInput.value);
 
-            document.getElementById('final-score-display').innerText = data.total_score;
-            document.getElementById('ai-percentile-display').innerText = data.predicted_percentile || "N/A";
-            document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
-            document.getElementById('ai-advice-display').innerText = data.ai_advice;
+                fetch('https://parthsancheti.pythonanywhere.com/calculate-score', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(res => res.json())
+                .then(data => {
+                    clearInterval(txtInterval);
+                    
+                    if(data.result === 'success') {
+                        // 1. Save to State Manager
+                        localStorage.setItem('gmc-category', data.category);
+                        localStorage.setItem('gmc-marks', data.total_score);
 
-            // Handle UI changes based on Manual vs Upload
-            if (isManual) {
-                // Hide Breakdown & Chart
-                document.getElementById('subject-breakdown-panel').style.display = 'none';
-                document.getElementById('chart-panel').style.display = 'none';
-                
-                // Make Percentile MASSIVE
-                const pctDisplay = document.getElementById('ai-percentile-display');
-                pctDisplay.classList.remove('text-xl', 'md:text-2xl');
-                pctDisplay.classList.add('text-4xl', 'md:text-5xl', 'mt-4');
-                
-                // Center the Main Score Card
-                const scoreCardContainer = document.getElementById('subject-breakdown-panel').parentElement;
-                scoreCardContainer.classList.remove('lg:w-7/12');
-                scoreCardContainer.classList.add('w-full', 'max-w-3xl', 'mx-auto');
-            } else {
-                document.getElementById('subject-breakdown-panel').style.display = 'block';
-                document.getElementById('chart-panel').style.display = 'flex';
-                
-                // Reset styling in case they used manual before
-                const pctDisplay = document.getElementById('ai-percentile-display');
-                pctDisplay.classList.remove('text-4xl', 'md:text-5xl', 'mt-4');
-                pctDisplay.classList.add('text-xl', 'md:text-2xl', 'mt-1');
-                
-                const scoreCardContainer = document.getElementById('subject-breakdown-panel').parentElement;
-                scoreCardContainer.classList.remove('w-full', 'max-w-3xl', 'mx-auto');
-                scoreCardContainer.classList.add('lg:w-7/12');
+                        // 2. INJECT DATA INTO THE HTML DOM
+                        document.getElementById('final-score-display').innerText = data.total_score;
+                        // Inject Gemini Pro Percentile & Category
+                        document.getElementById('ai-percentile-display').innerText = data.predicted_percentile || "N/A";
+                        document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
+                        document.getElementById('physics-correct').innerText = data.breakdown.Physics.correct;
+                        document.getElementById('physics-score').innerText = data.breakdown.Physics.score;
+                        
+                        document.getElementById('chemistry-correct').innerText = data.breakdown.Chemistry.correct;
+                        document.getElementById('chemistry-score').innerText = data.breakdown.Chemistry.score;
+                        
+                        document.getElementById('math-correct').innerText = data.breakdown.Mathematics.correct;
+                        document.getElementById('math-score').innerText = data.breakdown.Mathematics.score;
+                        
+                        document.getElementById('ai-advice-display').innerText = data.ai_advice;
 
-                // Inject Data
-                document.getElementById('physics-correct').innerText = data.breakdown.Physics.correct || 0;
-                document.getElementById('physics-score').innerText = data.breakdown.Physics.score || 0;
-                document.getElementById('chemistry-correct').innerText = data.breakdown.Chemistry.correct || 0;
-                document.getElementById('chemistry-score').innerText = data.breakdown.Chemistry.score || 0;
-                document.getElementById('math-correct').innerText = data.breakdown.Mathematics.correct || 0;
-                document.getElementById('math-score').innerText = data.breakdown.Mathematics.score || 0;
-                
-                renderChart(data.breakdown.Physics.score || 0, data.breakdown.Chemistry.score || 0, data.breakdown.Mathematics.score || 0);
-            }
+                        // 3. Show Results View
+                        processingView.classList.remove('active-view');
+                        processingView.classList.add('hidden-view');
+                        
+                        setTimeout(() => {
+                            processingView.style.display = 'none';
+                            resultsView.classList.remove('hidden-view');
+                            resultsView.classList.add('active-view', 'animate-pop-in');
+                            
+                            // Send Python data to the Chart.js function!
+                            renderChart(data.breakdown.Physics.score, data.breakdown.Chemistry.score, data.breakdown.Mathematics.score); 
+                        }, 400);
 
-            processingView.classList.remove('active-view');
-            processingView.classList.add('hidden-view');
-            setTimeout(() => {
-                processingView.style.display = 'none';
-                resultsView.classList.remove('hidden-view');
-                resultsView.classList.add('active-view', 'animate-pop-in');
-            }, 400);
-        }
-
-        function handleError(err) {
-            clearInterval(window.txtInterval);
-            processingView.classList.remove('active-view');
-            processingView.classList.add('hidden-view');
-            
-            setTimeout(() => {
-                processingView.style.display = 'none';
-                initialView.style.display = 'flex';
-                initialView.classList.remove('hidden-view');
-                initialView.classList.add('active-view');
-                fileUpload.value = '';
-                
-                Swal.fire({ 
-                    icon: 'error', 
-                    title: 'System Notice', 
-                    text: err.message, 
-                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' } 
+                    } else {
+                        // Throws the "Invalid File" error string from Python
+                        throw new Error(data.error); 
+                    }
+                })
+                .catch(err => {
+                    // IF PYTHON FAILS OR WRONG FILE IS UPLOADED:
+                    clearInterval(txtInterval);
+                    processingView.classList.remove('active-view');
+                    processingView.classList.add('hidden-view');
+                    
+                    setTimeout(() => {
+                        processingView.style.display = 'none';
+                        initialView.style.display = 'flex';
+                        initialView.classList.remove('hidden-view');
+                        initialView.classList.add('active-view');
+                        fileUpload.value = '';
+                        
+                        // Show beautiful glass error popup!
+                        Swal.fire({ 
+                            icon: 'error', 
+                            title: 'Parsing Error', 
+                            text: err.message, 
+                            customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' } 
+                        });
+                    }, 400);
                 });
+
             }, 400);
         }
 
-        // --- 5. DATA GATHERING HELPER ---
-        function getValidationData() {
-            const cat = document.getElementById('calc-category').value;
-            const date = document.getElementById('calc-date').value;
-            const shift = document.getElementById('calc-shift').value;
-            
-            if(!cat) {
-                Swal.fire({ icon: 'warning', title: 'Category Required', text: 'Please select your category.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
-                return null;
-            }
-            
-            // Combine Date and Shift for the backend
-            let combinedShift = "";
-            if (date || shift) {
-                combinedShift = `${date} ${shift}`.trim();
-            }
-            
-            return { category: cat, shift: combinedShift };
-        }
-
-        // --- 6. MANUAL CALCULATION LOGIC ---
-        function startManualMagic() {
-            const baseData = getValidationData();
-            if(!baseData) return;
-
-            let marks = document.getElementById('manual-marks').value;
-            const p = document.getElementById('manual-phy').value;
-            const c = document.getElementById('manual-chem').value;
-            const m = document.getElementById('manual-math').value;
-
-            // Auto-sum if advanced splits are used
-            if (!marks && (p || c || m)) {
-                marks = (Number(p) || 0) + (Number(c) || 0) + (Number(m) || 0);
-            }
-
-            if(!marks || marks < 0 || marks > 200) {
-                Swal.fire({ icon: 'warning', title: 'Invalid Marks', text: 'Please enter a valid score between 0 and 200.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
-                return;
-            }
-
-            triggerProcessingAnimation();
-
-            const payload = { marks: marks, category: baseData.category, shift: baseData.shift, exam_type: "MHT-CET" };
-
-            fetch('https://parthsancheti.pythonanywhere.com/calculate-manual', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.result === 'success') {
-                    populateResults(data, true);
-                } else throw new Error(data.error);
-            })
-            .catch(handleError);
-        }
-
-        // --- 7. HTML UPLOAD LOGIC ---
-        function startMagic() {
-            const file = fileUpload.files[0];
-            const baseData = getValidationData();
-            if(!baseData || !file) {
-                fileUpload.value = ''; 
-                return;
-            }
-
-            triggerProcessingAnimation();
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('category', baseData.category);
-            formData.append('shift', baseData.shift); 
-
-            fetch('https://parthsancheti.pythonanywhere.com/calculate-score', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.result === 'success') populateResults(data, false);
-                else throw new Error(data.error); 
-            })
-            .catch(handleError);
-        }
-
-        // --- 8. DRAG & DROP EVENTS ---
+        // Event Listeners for Drag and Drop
         fileUpload.addEventListener('change', function(e) { if(this.files && this.files.length > 0) startMagic(); });
 
         dropZone.addEventListener('dragover', (e) => {
@@ -712,7 +506,7 @@
             }
         });
 
-        // --- 9. CHART.JS DYNAMIC INJECTION ---
+        // --- 3. CHART.JS DYNAMIC INJECTION ---
         let chartInstance = null;
         function renderChart(physicsScore = 0, chemScore = 0, mathScore = 0) {
             const ctx = document.getElementById('scoreChart').getContext('2d');
@@ -727,7 +521,7 @@
                 data: {
                     labels: ['Physics', 'Chemistry', 'Mathematics'],
                     datasets: [{
-                        data: [physicsScore, chemScore, mathScore], 
+                        data: [physicsScore, chemScore, mathScore], // Dynamic Data from Python!
                         backgroundColor: ['rgba(59, 130, 246, 0.6)', 'rgba(236, 72, 153, 0.6)', 'rgba(168, 85, 247, 0.6)'],
                         borderColor: isDark ? '#12121a' : '#ffffff',
                         borderWidth: 2
@@ -741,7 +535,7 @@
             });
         }
 
-        // --- 10. EXPORT PDF ---
+        // --- 4. EXPORT PDF ---
         function downloadPDF() {
             const buttons = document.querySelectorAll('.data-hide-pdf');
             buttons.forEach(btn => btn.style.display = 'none');
