@@ -8,9 +8,10 @@
   <link rel="icon" href="bin/logo_rounded.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="bin/output.css?v=1.0" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
   <script>
     // Apply theme BEFORE paint to avoid flash
     const _t = localStorage.getItem('gmc-theme') || 'dark';
@@ -1809,16 +1810,72 @@ function bookCounselling(){
 
 async function startPayment(){
   try{
-    const d = await(await fetch(`${API_BASE}/create-payment-order`, {method: "POST"})).json();
+    const userEmail = localStorage.getItem('gmc-user-email') || "test@example.com";
+
+    // 1. Tell the Python backend to create a Cashfree order
+    const d = await(await fetch(`${API_BASE}/create-payment-order`, {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: userEmail })
+    })).json();
+
     if(d.result !== "success"){ swalErr("Payments Unavailable", d.error || "Try again."); return; }
-    
-    if(typeof Swal !== "undefined") {
-        Swal.fire({
-            icon: "success", title: "Order Created",
-            html: `Order <b>${d.order_id}</b> · ₹${(d.amount/100).toFixed(0)}<br><small>Add Razorpay checkout script to complete.</small>`,
+
+    // 2. Initialize Cashfree and open the modal pop-up
+    const cashfree = Cashfree({ mode: "production" }); // CHANGE TO "" WHEN LIVE
+
+    const checkoutOptions = {
+      paymentSessionId: d.payment_session_id,
+      redirectTarget: "_modal"
+    };
+
+    cashfree.checkout(checkoutOptions).then(async (result) => {
+      if (result.error) {
+        // User closed the popup or payment failed
+        if (typeof Swal !== "undefined") {
+          Swal.fire({
+            icon: 'error', title: 'Payment Failed',
+            text: result.error.message || "Transaction cancelled.",
             customClass: {popup: "gs", confirmButton: "gs-ok"}
-        });
-    }
+          });
+        }
+        return;
+      }
+
+      if (result.paymentDetails) {
+        // 3. Payment succeeded → ask the backend to verify with Cashfree
+        if (typeof Swal !== "undefined") {
+          Swal.fire({
+            title: 'Verifying Payment...', allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }, customClass: {popup: "gs"}
+          });
+        }
+        try {
+          const verifyRes = await (await fetch(`${API_BASE}/verify-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order_id: d.order_id, email: userEmail })
+          })).json();
+
+          if (verifyRes.result === 'success') {
+            Swal.fire({
+              icon: 'success', title: 'Booking Confirmed!',
+              text: 'Your counselling session is booked. Check your email/WhatsApp.',
+              customClass: {popup: "gs", confirmButton: "gs-ok"}
+            });
+          } else {
+            throw new Error(verifyRes.error || "Verification failed");
+          }
+        } catch (verifyErr) {
+          Swal.fire({
+            icon: 'error', title: 'Verification Error',
+            text: 'Payment succeeded, but we could not verify it. Contact Support.',
+            customClass: {popup: "gs", confirmButton: "gs-ok"}
+          });
+        }
+      }
+    });
+
   } catch {
       swalErr("Payment Error", "Could not reach the payment server.");
   }

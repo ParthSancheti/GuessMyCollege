@@ -7,9 +7,9 @@
     <title>Unlock PRO | Guess My College</title>
     <link rel="icon" href="bin/logo_rounded.png" type="image/png">
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="bin/output.css?v=1.0" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <script>
@@ -226,7 +226,7 @@
                     </button>
                     <p class="text-center text-xs font-bold text-gray-500 mt-4 flex items-center justify-center gap-2">
                         <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                        Secured by Razorpay
+                        Secured by Cashfree
                     </p>
                 </div>
 
@@ -406,19 +406,28 @@
                 loadingModal.classList.add('hidden');
                 loadingModal.classList.remove('flex');
 
-                // EXACT OPTIONS BLOCK REQUESTED BY USER
-                const options = {
-                    "key": data.key_id || "rzp_test_StXFshYiTuu4f0", 
-                    "amount": data.amount, 
-                    "currency": "INR",
-                    "name": "Guess My College",
-                    "description": isTopup ? "Pro Token Top-Up" : "Pro Predictor Access",
-                    "image": "bin/logo.png",
-                    "order_id": data.order_id,
-                    "prefill": { "email": userEmail },
-                    "theme": { "color": "#a855f7" },
-                    "handler": async function (response) {
-                        
+                // --- CASHFREE CHECKOUT ---
+                const cashfree = Cashfree({ mode: "production" }); // CHANGE TO "production" WHEN LIVE
+
+                const checkoutOptions = {
+                    paymentSessionId: data.payment_session_id,
+                    redirectTarget: "_modal"
+                };
+
+                cashfree.checkout(checkoutOptions).then(async (result) => {
+                    if (result.error) {
+                        // User closed the popup or payment failed
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Payment Failed',
+                            text: result.error.message || "Transaction cancelled.",
+                            customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                        });
+                        return;
+                    }
+
+                    if (result.paymentDetails) {
+                        // Payment succeeded in popup → ask the backend to verify with Cashfree
                         Swal.fire({
                             title: 'Verifying Payment...',
                             text: 'Please wait while we secure your account.',
@@ -432,16 +441,14 @@
                                 method: 'POST',
                                 headers: {'Content-Type':'application/json'},
                                 body: JSON.stringify({
-                                    razorpay_payment_id:  response.razorpay_payment_id,
-                                    razorpay_order_id:    response.razorpay_order_id,
-                                    razorpay_signature:   response.razorpay_signature,
-                                    email:                userEmail,
-                                    promo_code:           finalPromoCode || ""
+                                    order_id:   data.order_id,
+                                    email:      userEmail,
+                                    promo_code: finalPromoCode || ""
                                 })
                             });
-                            
+
                             const grant = await grantRes.json();
-                            
+
                             if (grant.result !== 'success') {
                                 Swal.fire({
                                     icon:'error', title:'Verification Failed',
@@ -451,7 +458,7 @@
                                 return;
                             }
 
-                                                        // Update state
+                            // Update state
                             localStorage.setItem('gmc-is-premium', 'true');
                             localStorage.setItem('gmc-needs-topup', 'false');
                             if (isTopup) {
@@ -472,9 +479,9 @@
                             // Pop the Custom Success Modal
                             const successModal = document.getElementById('successModal');
                             successModal.classList.remove('hidden');
-                            successModal.style.display = 'flex'; 
+                            successModal.style.display = 'flex';
                             setTimeout(() => successModal.classList.remove('opacity-0'), 10);
-                            
+
                             // ✅ Reliable countdown redirect — uses window.top to escape any iframe context
                             let _cd = 3;
                             const _cdEl = document.getElementById('success-countdown');
@@ -496,20 +503,7 @@
                             });
                         }
                     }
-                };
-
-                const rzp1 = new Razorpay(options);
-                
-                rzp1.on('payment.failed', function (response){
-                    Swal.fire({
-                        icon: 'error', 
-                        title: 'Payment Failed', 
-                        text: response.error.description, 
-                        customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
-                    });
                 });
-                
-                rzp1.open();
 
             } catch (error) {
                 loadingModal.classList.add('hidden');

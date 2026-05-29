@@ -1,16 +1,12 @@
 {
-  "devDependencies": {
-    "tailwindcss": "^3.4.19"
-  },
   "name": "gmc",
   "version": "1.0.0",
-  "description": "",
+  "description": "Guess My College",
   "main": "global.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
 }

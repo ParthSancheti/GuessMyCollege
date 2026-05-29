@@ -12,9 +12,9 @@
     <title>Book 1:1 Session | Guess My College</title>
     <link rel="icon" href="bin/logo_rounded.png" type="image/png">
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="bin/output.css?v=1.0" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
     
     <script>
         // GLOBAL THEME SYNC LOGIC
@@ -364,7 +364,9 @@
 
             try {
                 const response = await fetch('https://parthsancheti.pythonanywhere.com/create-payment-order', {
-                    method: 'POST'
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: form.email.value })
                 });
                 
                 if (!response.ok) throw new Error("Python Server Offline");
@@ -372,71 +374,70 @@
 
                 loadingModal.classList.add('hidden');
 
-                const options = {
-                    "key": "rzp_test_StXFshYiTuu4f0", 
-                    "amount": data.amount, 
-                    "currency": "INR",
-                    "name": "Guess My College",
-                    "description": "1:1 Expert Guidance Session",
-                    "image": "bin/logo.png",
-                    "order_id": data.order_id, 
-                    "handler": function (rzp_response){
-                        
-                        loadingModal.classList.remove('hidden');
+                // 1. Initialize Cashfree and open the modal pop-up
+                const cashfree = Cashfree({ mode: "production" }); // CHANGE TO "" WHEN LIVE
 
-                        const fd = new FormData(form);
-                        fd.append('payment_id', rzp_response.razorpay_payment_id);
-                        fd.append('payment_status', 'SUCCESS');
-
-                        fetch(SCRIPT_URL, { method: 'POST', body: fd })
-                            .then(res => res.json())
-                            .then(sheetData => {
-                                loadingModal.classList.add('hidden');
-                                if (sheetData.result === 'success') {
-                                    // PLAY UNLOCKED AUDIO!
-                                    successSound.play().catch(e => console.log("Audio blocked by browser:", e));
-                                    
-                                    form.reset();
-                                    successModal.classList.remove('hidden');
-                                    successModal.style.display = 'flex'; 
-                                    setTimeout(() => successModal.classList.remove('opacity-0'), 10);
-                                } else {
-                                    throw new Error(sheetData.error);
-                                }
-                            })
-                            .catch(err => {
-                                loadingModal.classList.add('hidden');
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Sync Failed',
-                                    text: 'Payment received but database sync failed. Keep this ID safe: ' + rzp_response.razorpay_payment_id,
-                                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
-                                });
-                            });
-                    },
-                    "prefill": {
-                        "name": form.first_name.value + ' ' + form.last_name.value,
-                        "email": form.email.value,
-                        "contact": form.phone_number.value
-                    },
-                    "theme": {
-                        "color": "#a855f7" 
-                    }
+                const checkoutOptions = {
+                    paymentSessionId: data.payment_session_id,
+                    redirectTarget: "_modal"
                 };
 
-                const rzp1 = new Razorpay(options);
-                
-                rzp1.on('payment.failed', function (response){
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Payment Failed',
-                        text: response.error.description,
-                        customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
-                    });
+                cashfree.checkout(checkoutOptions).then(async (result) => {
+                    if (result.error) {
+                        loadingModal.classList.add('hidden');
+                        Swal.fire({
+                            icon: 'error', title: 'Payment Failed',
+                            text: result.error.message || "Transaction cancelled.",
+                            customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                        });
+                        return;
+                    }
+
+                    if (result.paymentDetails) {
+                        // 2. Payment succeeded → verify with the backend, then sync the booking
+                        loadingModal.classList.remove('hidden');
+                        try {
+                            const verifyRes = await (await fetch('https://parthsancheti.pythonanywhere.com/verify-booking-payment', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    order_id: data.order_id,
+                                    email: form.email.value
+                                })
+                            })).json();
+
+                            if (verifyRes.result !== 'success') {
+                                throw new Error(verifyRes.error || "Verification failed");
+                            }
+
+                            // 3. Verified → push the booking details to the Google Sheet
+                            const fd = new FormData(form);
+                            fd.append('order_id', data.order_id);
+                            fd.append('payment_status', 'SUCCESS');
+
+                            const sheetData = await (await fetch(SCRIPT_URL, { method: 'POST', body: fd })).json();
+                            loadingModal.classList.add('hidden');
+
+                            if (sheetData.result === 'success') {
+                                successSound.play().catch(e => console.log("Audio blocked by browser:", e));
+                                form.reset();
+                                successModal.classList.remove('hidden');
+                                successModal.style.display = 'flex';
+                                setTimeout(() => successModal.classList.remove('opacity-0'), 10);
+                            } else {
+                                throw new Error(sheetData.error || "Sheet sync failed");
+                            }
+                        } catch (e) {
+                            loadingModal.classList.add('hidden');
+                            Swal.fire({
+                                icon: 'error', title: 'Verification Error',
+                                text: 'Payment succeeded, but we could not confirm the booking. Keep this Order ID safe: ' + data.order_id,
+                                customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
+                            });
+                        }
+                    }
                 });
 
-                rzp1.open();
-                
             } catch (error) {
                 loadingModal.classList.add('hidden');
                 console.error("Gateway Error:", error);
