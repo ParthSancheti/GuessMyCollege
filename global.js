@@ -429,14 +429,15 @@ function toggleGlobalTheme(event) {
     const isDark = document.documentElement.classList.contains('dark');
     const circle = document.getElementById('theme-circle');
 
-    // If we have an event and the circle exists, do the explosion
     if (circle && event) {
-        // 1. Color the expanding circle as the *next* theme
+        // 1. Get exact mouse coordinates (fallback to center if clicked via keyboard)
+        const x = event.clientX || window.innerWidth / 2;
+        const y = event.clientY || window.innerHeight / 2;
+
+        // 2. Set circle color to the *next* theme
         circle.style.backgroundColor = isDark ? '#f0f4f8' : '#050508';
-        
-        // 2. Position precisely at the mouse click (much safer than bounding boxes)
-        circle.style.left = event.clientX + 'px';
-        circle.style.top  = event.clientY + 'px';
+        circle.style.left = x + 'px';
+        circle.style.top  = y + 'px';
         
         // 3. Reset any stuck animation states
         circle.classList.remove('expand-active');
@@ -445,7 +446,7 @@ function toggleGlobalTheme(event) {
         // 4. Force browser layout reflow so it registers the starting position
         void circle.offsetWidth;
         
-        // 5. Execute the expansion
+        // 5. Execute the expansion using your CSS !important class
         circle.style.transition = 'transform 0.6s cubic-bezier(0.64, 0.04, 0.26, 1.01)';
         circle.classList.add('expand-active');
         
@@ -454,14 +455,14 @@ function toggleGlobalTheme(event) {
             executeThemeSwap();
         }, 300);
 
-        // 7. Hide the circle invisibly AFTER the body has finished its own CSS transition
+        // 7. Hide the circle invisibly AFTER the body has finished its 0.3s CSS transition
         setTimeout(() => {
             circle.style.transition = 'none';
             circle.classList.remove('expand-active');
         }, 700);
 
     } else {
-        // Instant fallback if animation fails
+        // Instant fallback if animation completely fails
         executeThemeSwap();
     }
 }
