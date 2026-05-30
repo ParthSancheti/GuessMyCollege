@@ -425,27 +425,36 @@ initTheme();
 
 function toggleGlobalTheme(event) {
     if (typeof triggerHaptic === 'function') triggerHaptic();
-    const isDark    = document.documentElement.classList.contains('dark');
-    const targetBtn = event?.currentTarget || null;
-    const circle    = document.getElementById('theme-circle');
+    const isDark = document.documentElement.classList.contains('dark');
+    
+    // BULLETPROOF FIX: Get the button correctly even if they clicked the span icon
+    const targetBtn = event ? (event.currentTarget || event.target.closest('button')) : null;
+    const circle = document.getElementById('theme-circle');
 
     if (circle && targetBtn) {
         const rect = targetBtn.getBoundingClientRect();
         circle.style.backgroundColor = isDark ? '#f0f4f8' : '#050508';
         circle.style.left = (rect.left + rect.width / 2) + 'px';
         circle.style.top  = (rect.top  + rect.height / 2) + 'px';
+        
+        // Force the browser to register the coordinates before expanding
+        void circle.offsetWidth;
+        
         circle.style.transform = 'scale(400)';
         targetBtn.style.pointerEvents = 'none';
+        
         setTimeout(() => {
             executeThemeSwap();
             circle.style.transition = 'none';
             circle.style.transform  = 'scale(0)';
+            
             setTimeout(() => {
                 circle.style.transition = 'transform 0.6s cubic-bezier(0.64,0.04,0.26,1.01)';
                 targetBtn.style.pointerEvents = 'auto';
             }, 50);
         }, 300);
     } else {
+        // Fallback swap if animation completely fails
         executeThemeSwap();
     }
 }
