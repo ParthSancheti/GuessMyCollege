@@ -294,7 +294,7 @@
                     
                     <div class="w-full lg:w-7/12 flex flex-col gap-6">
                         
-                        <div id="chart-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
+                        <div id="score-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
                             <div class="absolute right-[-10%] top-[-50%] w-48 h-48 bg-purple-500/20 blur-[40px] rounded-full pointer-events-none"></div>
                             <div class="relative z-10">
                                 <p class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-1">Final Score</p>
@@ -372,9 +372,9 @@
                     </div>
 
                     <div class="w-full lg:w-5/12 flex flex-col gap-6 h-full">
-    
-                    <div id="matrix-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
-                        <h3 class="text-xl font-black mb-4 w-full text-left">Performance Matrix</h3>
+                        
+                        <div id="matrix-panel" class="bg-white/60 dark:bg-black/20 border border-black/5 dark:border-white/5 rounded-[2rem] p-6 shadow-sm flex-1 flex flex-col items-center justify-center min-h-[350px]">
+                            <h3 class="text-xl font-black mb-4 w-full text-left">Performance Matrix</h3>
                             <div class="relative w-full max-w-[280px] aspect-square flex-1 flex items-center justify-center">
                                 <canvas id="scoreChart"></canvas>
                             </div>
@@ -496,145 +496,96 @@
         }
 
         function populateResults(data, isManual = false) {
-            clearInterval(window.txtInterval);
-            
-            localStorage.setItem('gmc-category', data.category);
-            localStorage.setItem('gmc-marks', data.total_score);
+    clearInterval(window.txtInterval);
+    
+    localStorage.setItem('gmc-category', data.category);
+    localStorage.setItem('gmc-marks', data.total_score);
 
-            document.getElementById('final-score-display').innerText = data.total_score;
-            
-            // Format Percentile safely
-            let pctText = data.predicted_percentile || "Calculation Failed";
-            if (!pctText.includes('%')) pctText += " Percentile";
-            document.getElementById('ai-percentile-display').innerText = pctText;
-            
-            document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
-            document.getElementById('ai-advice-display').innerHTML = (data.ai_advice || "").replace(/\n/g, '<br>');
+    document.getElementById('final-score-display').innerText = data.total_score;
+    
+    // Format Percentile safely
+    let pctText = data.predicted_percentile || "Calculation Failed";
+    if (!pctText.includes('%')) pctText += " Percentile";
+    document.getElementById('ai-percentile-display').innerText = pctText;
+    
+    document.getElementById('ai-category-display').innerText = `${data.category} Cutoff Applied`;
+    document.getElementById('ai-advice-display').innerHTML = (data.ai_advice || "").replace(/\n/g, '<br>');
 
-            const breakdownPanel = document.getElementById('subject-breakdown-panel');
-            const matrixPanel = document.getElementById('matrix-panel'); // Use the new ID
-            const scoreCardContainer = breakdownPanel.parentElement;
-            const pctDisplay = document.getElementById('ai-percentile-display');
+    // Target the newly renamed IDs
+    const scorePanel = document.getElementById('score-panel');
+    const breakdownPanel = document.getElementById('subject-breakdown-panel');
+    const matrixPanel = document.getElementById('matrix-panel');
+    const scoreCardContainer = breakdownPanel.parentElement;
 
-            // 1. ALWAYS hide the Graph (Matrix) for Manual Inputs (Total OR Splits)
-            if (isManual) {
-                if (matrixPanel) {
-                    matrixPanel.classList.add('hidden');
-                    matrixPanel.classList.remove('flex'); 
-                }
-            } else {
-                if (matrixPanel) {
-                    matrixPanel.classList.remove('hidden');
-                    matrixPanel.classList.add('flex');
-                }
-            }
+    // 1. Always ensure the Score & Percentile panel is visible
+    scorePanel.classList.remove('hidden');
+    scorePanel.classList.add('flex');
 
-            // 2. Handle Subject Breakdown Layout
-            if (isManual && !data.has_splits) {
-                // Hide Breakdown if no splits were typed
-                breakdownPanel.classList.add('hidden');
-                
-                // Center the final score card
-                scoreCardContainer.classList.remove('lg:w-7/12');
-                scoreCardContainer.classList.add('w-full', 'max-w-3xl', 'mx-auto');
-                
-                // Make Percentile MASSIVE
-                pctDisplay.classList.remove('text-xl', 'md:text-2xl');
-                pctDisplay.classList.add('text-4xl', 'md:text-5xl', 'mt-4', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-500');
-            } else {
-                // Show Breakdown (for Uploads OR Manual with Splits)
-                breakdownPanel.classList.remove('hidden');
-                
-                scoreCardContainer.classList.remove('w-full', 'max-w-3xl', 'mx-auto');
-                scoreCardContainer.classList.add('lg:w-7/12');
-
-                pctDisplay.classList.remove('text-4xl', 'md:text-5xl', 'mt-4', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-500');
-                pctDisplay.classList.add('text-xl', 'md:text-2xl', 'mt-1');
-
-                document.getElementById('physics-correct').innerText = data.breakdown?.Physics?.correct || 0;
-                document.getElementById('physics-score').innerText = data.breakdown?.Physics?.score || 0;
-                document.getElementById('chemistry-correct').innerText = data.breakdown?.Chemistry?.correct || 0;
-                document.getElementById('chemistry-score').innerText = data.breakdown?.Chemistry?.score || 0;
-                
-                let thirdLabel = 'Mathematics';
-                let thirdScore = 0;
-
-                if (data.breakdown?.Biology) {
-                    thirdLabel = 'Biology';
-                    thirdScore = data.breakdown.Biology.score || 0;
-                    document.getElementById('math-correct').innerText = data.breakdown.Biology.correct || 0;
-                    document.getElementById('math-score').innerText = thirdScore;
-                    const labelCell = document.getElementById('math-correct').closest('tr').querySelector('td:first-child');
-                    if(labelCell) labelCell.innerHTML = '<span class="text-purple-600 font-bold">Biology</span>';
-                } else {
-                    thirdLabel = 'Mathematics';
-                    thirdScore = data.breakdown?.Mathematics?.score || 0;
-                    document.getElementById('math-correct').innerText = data.breakdown?.Mathematics?.correct || 0;
-                    document.getElementById('math-score').innerText = thirdScore;
-                    const labelCell = document.getElementById('math-correct').closest('tr').querySelector('td:first-child');
-                    if(labelCell) labelCell.innerHTML = '<span class="text-purple-600 font-bold">Mathematics</span> <span class="text-xs text-gray-500 font-normal ml-1">(x2)</span>';
-                }
-                
-                // Only render the chart data if it's an upload
-                if (!isManual) {
-                    renderChart(data.breakdown?.Physics?.score || 0, data.breakdown?.Chemistry?.score || 0, thirdScore, thirdLabel);
-                }
-            }
-                
-                // Center the score
-                scoreCardContainer.classList.remove('lg:w-7/12');
-                scoreCardContainer.classList.add('w-full', 'max-w-3xl', 'mx-auto');
-                
-                // Make Percentile MASSIVE
-                pctDisplay.classList.remove('text-xl', 'md:text-2xl');
-                pctDisplay.classList.add('text-4xl', 'md:text-5xl', 'mt-4', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-500');
-            } else {
-                // Show panels normally
-                breakdownPanel.classList.remove('hidden');
-                chartPanel.classList.remove('hidden');
-                chartPanel.classList.add('flex');
-                
-                scoreCardContainer.classList.remove('w-full', 'max-w-3xl', 'mx-auto');
-                scoreCardContainer.classList.add('lg:w-7/12');
-
-                pctDisplay.classList.remove('text-4xl', 'md:text-5xl', 'mt-4', 'text-transparent', 'bg-clip-text', 'bg-gradient-to-r', 'from-purple-500', 'to-blue-500');
-                pctDisplay.classList.add('text-xl', 'md:text-2xl', 'mt-1');
-
-                document.getElementById('physics-correct').innerText = data.breakdown?.Physics?.correct || 0;
-                document.getElementById('physics-score').innerText = data.breakdown?.Physics?.score || 0;
-                document.getElementById('chemistry-correct').innerText = data.breakdown?.Chemistry?.correct || 0;
-                document.getElementById('chemistry-score').innerText = data.breakdown?.Chemistry?.score || 0;
-                
-                let thirdLabel = 'Mathematics';
-                let thirdScore = 0;
-
-                if (data.breakdown?.Biology) {
-                    thirdLabel = 'Biology';
-                    thirdScore = data.breakdown.Biology.score || 0;
-                    document.getElementById('math-correct').innerText = data.breakdown.Biology.correct || 0;
-                    document.getElementById('math-score').innerText = thirdScore;
-                    const labelCell = document.getElementById('math-correct').closest('tr').querySelector('td:first-child');
-                    if(labelCell) labelCell.innerHTML = '<span class="text-purple-600 font-bold">Biology</span>';
-                } else {
-                    thirdLabel = 'Mathematics';
-                    thirdScore = data.breakdown?.Mathematics?.score || 0;
-                    document.getElementById('math-correct').innerText = data.breakdown?.Mathematics?.correct || 0;
-                    document.getElementById('math-score').innerText = thirdScore;
-                    const labelCell = document.getElementById('math-correct').closest('tr').querySelector('td:first-child');
-                    if(labelCell) labelCell.innerHTML = '<span class="text-purple-600 font-bold">Mathematics</span> <span class="text-xs text-gray-500 font-normal ml-1">(x2)</span>';
-                }
-                
-                renderChart(data.breakdown?.Physics?.score || 0, data.breakdown?.Chemistry?.score || 0, thirdScore, thirdLabel);
-            }
-
-            processingView.classList.replace('active-view', 'hidden-view');
-            setTimeout(() => {
-                processingView.style.display = 'none';
-                resultsView.classList.replace('hidden-view', 'active-view');
-                resultsView.classList.add('animate-pop-in');
-            }, 400);
-        }
+    if (isManual) {
+        // HIDE PERFORMANCE MATRIX FOR ALL MANUAL ENTRIES (Full & Split)
+        matrixPanel.classList.add('hidden');
+        matrixPanel.classList.remove('flex', 'md:flex'); 
         
+        if (!data.has_splits) {
+            // Hide Breakdown Table if no splits were given
+            breakdownPanel.classList.add('hidden');
+            scoreCardContainer.classList.remove('lg:w-7/12');
+            scoreCardContainer.classList.add('w-full', 'max-w-3xl', 'mx-auto');
+        } else {
+            // Show Breakdown Table if splits were given
+            breakdownPanel.classList.remove('hidden');
+            scoreCardContainer.classList.remove('w-full', 'max-w-3xl', 'mx-auto');
+            scoreCardContainer.classList.add('lg:w-7/12');
+            
+            updateBreakdownTable(data);
+        }
+    } else {
+        // UPLOAD MODE: Show Everything (Chart + Breakdown)
+        breakdownPanel.classList.remove('hidden');
+        matrixPanel.classList.remove('hidden');
+        matrixPanel.classList.add('flex', 'md:flex');
+        
+        scoreCardContainer.classList.remove('w-full', 'max-w-3xl', 'mx-auto');
+        scoreCardContainer.classList.add('lg:w-7/12');
+
+        updateBreakdownTable(data);
+        
+        let thirdLabel = data.breakdown?.Biology ? 'Biology' : 'Mathematics';
+        let thirdScore = data.breakdown?.[thirdLabel]?.score || 0;
+        renderChart(data.breakdown?.Physics?.score || 0, data.breakdown?.Chemistry?.score || 0, thirdScore, thirdLabel);
+    }
+
+    processingView.classList.replace('active-view', 'hidden-view');
+    setTimeout(() => {
+        processingView.style.display = 'none';
+        resultsView.classList.replace('hidden-view', 'active-view');
+        resultsView.classList.add('animate-pop-in');
+    }, 400);
+}
+
+// Helper function to keep the table logic clean
+function updateBreakdownTable(data) {
+    document.getElementById('physics-correct').innerText = data.breakdown?.Physics?.correct || 0;
+    document.getElementById('physics-score').innerText = data.breakdown?.Physics?.score || 0;
+    document.getElementById('chemistry-correct').innerText = data.breakdown?.Chemistry?.correct || 0;
+    document.getElementById('chemistry-score').innerText = data.breakdown?.Chemistry?.score || 0;
+    
+    let thirdLabel = data.breakdown?.Biology ? 'Biology' : 'Mathematics';
+    let thirdScore = data.breakdown?.[thirdLabel]?.score || 0;
+    
+    document.getElementById('math-correct').innerText = data.breakdown?.[thirdLabel]?.correct || 0;
+    document.getElementById('math-score').innerText = thirdScore;
+    
+    const labelCell = document.getElementById('math-correct').closest('tr').querySelector('td:first-child');
+    if (labelCell) {
+        if (thirdLabel === 'Biology') {
+            labelCell.innerHTML = '<span class="text-purple-600 font-bold text-base md:text-lg">Biology</span>';
+        } else {
+            labelCell.innerHTML = '<span class="text-purple-600 font-bold text-base md:text-lg">Mathematics</span> <span class="text-xs text-gray-500 font-medium ml-1">(x2)</span>';
+        }
+    }
+}
+
         function handleError(err) {
             clearInterval(window.txtInterval);
             processingView.classList.replace('active-view', 'hidden-view');
