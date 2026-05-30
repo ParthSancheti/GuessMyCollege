@@ -425,36 +425,43 @@ initTheme();
 
 function toggleGlobalTheme(event) {
     if (typeof triggerHaptic === 'function') triggerHaptic();
-    const isDark = document.documentElement.classList.contains('dark');
     
-    // BULLETPROOF FIX: Get the button correctly even if they clicked the span icon
-    const targetBtn = event ? (event.currentTarget || event.target.closest('button')) : null;
+    const isDark = document.documentElement.classList.contains('dark');
     const circle = document.getElementById('theme-circle');
 
-    if (circle && targetBtn) {
-        const rect = targetBtn.getBoundingClientRect();
+    // If we have an event and the circle exists, do the explosion
+    if (circle && event) {
+        // 1. Color the expanding circle as the *next* theme
         circle.style.backgroundColor = isDark ? '#f0f4f8' : '#050508';
-        circle.style.left = (rect.left + rect.width / 2) + 'px';
-        circle.style.top  = (rect.top  + rect.height / 2) + 'px';
         
-        // Force the browser to register the coordinates before expanding
+        // 2. Position precisely at the mouse click (much safer than bounding boxes)
+        circle.style.left = event.clientX + 'px';
+        circle.style.top  = event.clientY + 'px';
+        
+        // 3. Reset any stuck animation states
+        circle.classList.remove('expand-active');
+        circle.style.transition = 'none';
+        
+        // 4. Force browser layout reflow so it registers the starting position
         void circle.offsetWidth;
         
-        circle.style.transform = 'scale(400)';
-        targetBtn.style.pointerEvents = 'none';
+        // 5. Execute the expansion
+        circle.style.transition = 'transform 0.6s cubic-bezier(0.64, 0.04, 0.26, 1.01)';
+        circle.classList.add('expand-active');
         
+        // 6. Swap the theme in the background right as the screen gets covered
         setTimeout(() => {
             executeThemeSwap();
-            circle.style.transition = 'none';
-            circle.style.transform  = 'scale(0)';
-            
-            setTimeout(() => {
-                circle.style.transition = 'transform 0.6s cubic-bezier(0.64,0.04,0.26,1.01)';
-                targetBtn.style.pointerEvents = 'auto';
-            }, 50);
         }, 300);
+
+        // 7. Hide the circle invisibly AFTER the body has finished its own CSS transition
+        setTimeout(() => {
+            circle.style.transition = 'none';
+            circle.classList.remove('expand-active');
+        }, 700);
+
     } else {
-        // Fallback swap if animation completely fails
+        // Instant fallback if animation fails
         executeThemeSwap();
     }
 }
@@ -470,7 +477,6 @@ function updateThemeText(mode) {
     const el = document.getElementById('theme-status');
     if (el) el.textContent = mode;
 }
-
 // ─────────────────────────────────────────────
 //  8. DYNAMIC FLOATING REFER & EARN BADGE
 // ─────────────────────────────────────────────
