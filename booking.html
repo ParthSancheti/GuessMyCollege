@@ -348,6 +348,10 @@
                 return;
             }
 
+            // 1. SHOW THE LOADER IMMEDIATELY (This was missing!)
+            loadingModal.classList.remove('hidden');
+            loadingModal.style.display = 'flex';
+
             try {
                 const response = await fetch('https://parthsancheti.pythonanywhere.com/create-payment-order', {
                     method: 'POST',
@@ -358,10 +362,11 @@
                 if (!response.ok) throw new Error("Python Server Offline");
                 const data = await response.json();
 
+                // 2. HIDE THE LOADER ONCE SERVER RESPONDS
                 loadingModal.classList.add('hidden');
 
-                // 1. Initialize Cashfree and open the modal pop-up
-                const cashfree = Cashfree({ mode: "production" }); // CHANGE TO "" WHEN LIVE
+                // 3. AUTO-SYNC CASHFREE ENVIRONMENT (Sandbox or Production)
+                const cashfree = Cashfree({ mode: data.cashfree_env }); 
 
                 const checkoutOptions = {
                     paymentSessionId: data.payment_session_id,
@@ -380,7 +385,6 @@
                     }
 
                     if (result.paymentDetails) {
-                        // 2. Payment succeeded → verify with the backend, then sync the booking
                         loadingModal.classList.remove('hidden');
                         try {
                             const verifyRes = await (await fetch('https://parthsancheti.pythonanywhere.com/verify-booking-payment', {
@@ -396,7 +400,6 @@
                                 throw new Error(verifyRes.error || "Verification failed");
                             }
 
-                            // 3. Verified → push the booking details to the Google Sheet
                             const fd = new FormData(form);
                             fd.append('order_id', data.order_id);
                             fd.append('payment_status', 'SUCCESS');
