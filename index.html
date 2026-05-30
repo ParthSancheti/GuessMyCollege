@@ -2,6 +2,22 @@
 <html lang="en" class="scroll-smooth">
 <head>
     <link href="bin/output.css?v=1.0" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: {
+                        'spin-slow': 'spin 15s linear infinite',
+                        'spin-reverse': 'spin-reverse 15s linear infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
     <script>
         // Anti-Flicker Script: Force Dark Mode by default
         const _t = localStorage.getItem('gmc-theme') || 'dark';
@@ -25,7 +41,6 @@
         .dark body {
             background-color: #050508; /* Dark Mode Background */
         }
-        body { transition: background-color 0.1s ease, color 0.1s ease; }
 
         /* Scroll Reveal Animation */
         .reveal { opacity: 0; transform: translateY(50px); transition: all 1s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -88,7 +103,6 @@
             0% { opacity: 0; transform: translateY(30px); }
             100% { opacity: 1; transform: none; }
         }
-        /* ADD THIS TO YOUR <style> TAG */
         .true-glass {
             background: rgba(255, 255, 255, 0.45);
             backdrop-filter: blur(30px) saturate(150%);
