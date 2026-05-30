@@ -425,44 +425,27 @@ initTheme();
 
 function toggleGlobalTheme(event) {
     if (typeof triggerHaptic === 'function') triggerHaptic();
-    
-    const isDark = document.documentElement.classList.contains('dark');
-    const circle = document.getElementById('theme-circle');
+    const isDark    = document.documentElement.classList.contains('dark');
+    const targetBtn = event?.currentTarget || null;
+    const circle    = document.getElementById('theme-circle');
 
-    if (circle && event) {
-        // 1. Get exact mouse coordinates (fallback to center if clicked via keyboard)
-        const x = event.clientX || window.innerWidth / 2;
-        const y = event.clientY || window.innerHeight / 2;
-
-        // 2. Set circle color to the *next* theme
+    if (circle && targetBtn) {
+        const rect = targetBtn.getBoundingClientRect();
         circle.style.backgroundColor = isDark ? '#f0f4f8' : '#050508';
-        circle.style.left = x + 'px';
-        circle.style.top  = y + 'px';
-        
-        // 3. Reset any stuck animation states
-        circle.classList.remove('expand-active');
-        circle.style.transition = 'none';
-        
-        // 4. Force browser layout reflow so it registers the starting position
-        void circle.offsetWidth;
-        
-        // 5. Execute the expansion using your CSS !important class
-        circle.style.transition = 'transform 0.6s cubic-bezier(0.64, 0.04, 0.26, 1.01)';
-        circle.classList.add('expand-active');
-        
-        // 6. Swap the theme in the background right as the screen gets covered
+        circle.style.left = (rect.left + rect.width / 2) + 'px';
+        circle.style.top  = (rect.top  + rect.height / 2) + 'px';
+        circle.style.transform = 'scale(400)';
+        targetBtn.style.pointerEvents = 'none';
         setTimeout(() => {
             executeThemeSwap();
-        }, 300);
-
-        // 7. Hide the circle invisibly AFTER the body has finished its 0.3s CSS transition
-        setTimeout(() => {
             circle.style.transition = 'none';
-            circle.classList.remove('expand-active');
-        }, 700);
-
+            circle.style.transform  = 'scale(0)';
+            setTimeout(() => {
+                circle.style.transition = 'transform 0.6s cubic-bezier(0.64,0.04,0.26,1.01)';
+                targetBtn.style.pointerEvents = 'auto';
+            }, 50);
+        }, 300);
     } else {
-        // Instant fallback if animation completely fails
         executeThemeSwap();
     }
 }
@@ -478,6 +461,7 @@ function updateThemeText(mode) {
     const el = document.getElementById('theme-status');
     if (el) el.textContent = mode;
 }
+
 // ─────────────────────────────────────────────
 //  8. DYNAMIC FLOATING REFER & EARN BADGE
 // ─────────────────────────────────────────────
