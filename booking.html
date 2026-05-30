@@ -347,20 +347,6 @@
                 });
                 return;
             }
-            // ---------------------------------------------------
-
-            // Custom validation for hidden inputs (Custom Dropdowns)
-            if(!form.category.value || !form.branch.value) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Required Fields',
-                    text: 'Please select both your Category and Preferred Branch.',
-                    customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }
-                });
-                return;
-            }
-
-            loadingModal.classList.remove('hidden');
 
             try {
                 const response = await fetch('https://parthsancheti.pythonanywhere.com/create-payment-order', {

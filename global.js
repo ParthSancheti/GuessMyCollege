@@ -409,17 +409,26 @@ function openReferModal() {
 //  7. THEME ENGINE
 // ─────────────────────────────────────────────
 function initTheme() {
-    // Force 'dark' as the absolute default if no preference is saved
-    const saved = localStorage.getItem('gmc-theme') || 'dark';
+    // 1. Check for saved user preference
+    const saved = localStorage.getItem('gmc-theme');
     
-    if (saved === 'light') {
-        document.documentElement.classList.remove('dark');
-        updateThemeText('Light');
-    } else {
+    // 2. Check system OS preference
+    const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    // 3. Apply dark mode if user explicitly saved 'dark', 
+    // OR if there's no saved preference and the system is in dark mode.
+    const useDark = saved === 'dark' || (saved === null && sysDark);
+    
+    if (useDark) {
         document.documentElement.classList.add('dark');
         updateThemeText('Dark');
+    } else {
+        document.documentElement.classList.remove('dark');
+        updateThemeText('Light');
     }
 }
+
+initTheme();
 
 initTheme();
 
