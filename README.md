@@ -36,9 +36,6 @@
 |-----------|---------|
 | <img src="v2.5/bin/g1.png" width="400"> | <img src="v2.5/bin/g2.png" width="400"> |
 
-<div align="center">
-  <img src="v2.5/bin/1.png" width="800">
-</div>
 
 ---
 
