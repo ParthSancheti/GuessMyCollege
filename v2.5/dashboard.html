@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <script>
+        const _t = localStorage.getItem('gmc-theme') || 'dark';
+        if (_t === 'light') document.documentElement.classList.remove('dark');
+        else document.documentElement.classList.add('dark');
+    </script>
+    <script src="global.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Guess My College</title>
+    <link rel="icon" href="bin/logo_rounded.png" type="image/png">
+    
+    <link href="bin/output.css?v=1.0" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        body { transition: background-color 0.3s ease, color 0.3s ease; background-color: #f0f4f8; }
+        .dark body { background-color: #050508; }
+        
+        @keyframes hue-shift { 0% { filter: hue-rotate(0deg); } 50% { filter: hue-rotate(90deg); } 100% { filter: hue-rotate(0deg); } }
+        .gemini-bg { animation: hue-shift 20s infinite ease-in-out; }
+
+        .true-glass {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        }
+        .dark .true-glass {
+            background: rgba(18, 18, 26, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .glass-input { background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.1); color: #000; }
+        .dark .glass-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; }
+        .glass-input:focus { outline: none; border-color: #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+
+        .glass-swal { background: rgba(18, 18, 26, 0.85) !important; backdrop-filter: blur(20px) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; border-radius: 2rem !important; color: #ffffff !important; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important; }
+        html:not(.dark) .glass-swal { background: rgba(255, 255, 255, 0.85) !important; color: #000000 !important; border: 1px solid rgba(0, 0, 0, 0.1) !important; }
+        .glass-swal-confirm { background: #6366f1 !important; border-radius: 1rem !important; font-weight: 800 !important; padding: 12px 30px !important; }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 10px; }
+    </style>
+</head>
+
+<body class="text-gray-900 dark:text-white overflow-x-hidden selection:bg-indigo-500 selection:text-white min-h-[100dvh] flex flex-col">
+
+    <!-- Background -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none gemini-bg">
+        <div class="absolute top-[-10%] left-[-20%] w-[80vw] h-[80vw] rounded-full blur-[140px] opacity-40 dark:opacity-20 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-indigo-600 to-purple-500 animate-spin-slow"></div>
+        <div class="absolute bottom-[-10%] right-[-20%] w-[70vw] h-[70vw] rounded-full blur-[140px] opacity-40 dark:opacity-20 mix-blend-multiply dark:mix-blend-screen bg-gradient-to-tr from-blue-600 to-cyan-400 animate-spin-reverse"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-[90rem] mx-auto px-4 md:px-8 py-8 min-h-[100dvh] flex flex-col">
+        
+        <!-- Header -->
+        <div class="w-full flex justify-between items-center mb-6">
+            <a href="index.html" class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full true-glass shadow-lg hover:-translate-x-1 transition-transform">
+                <div class="w-8 h-8 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                </div>
+                <span class="font-black text-sm uppercase tracking-widest mr-2">Back</span>
+            </a>
+            <div class="true-glass px-4 py-2 rounded-full flex items-center gap-2 shadow-sm">
+                <span class="font-bold text-xs uppercase tracking-widest text-indigo-600 dark:text-indigo-400">🛡️ SYSTEM ADMIN</span>
+            </div>
+        </div>
+
+        <!-- AUTHENTICATION OVERLAY -->
+        <div id="auth-view" class="w-full flex-1 flex items-center justify-center">
+            <div class="true-glass p-8 md:p-12 rounded-[3rem] shadow-2xl max-w-md w-full text-center flex flex-col items-center">
+                <div class="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mb-6 border border-indigo-500/30">
+                    <span class="text-4xl">🔐</span>
+                </div>
+                <h2 class="text-3xl font-black tracking-tight mb-2">Restricted Area</h2>
+                <p class="text-sm font-bold text-gray-500 dark:text-gray-400 mb-8">Enter the master password to view SaaS analytics.</p>
+                
+                <input type="password" id="admin-pass" placeholder="Admin Password" class="w-full rounded-2xl px-5 py-4 glass-input font-bold text-center tracking-widest mb-4 transition-all">
+                
+                <button onclick="fetchAdminData()" id="login-btn" class="w-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-black text-lg py-4 rounded-2xl shadow-[0_10px_30px_rgba(79,70,229,0.3)] hover:scale-[1.02] active:scale-95 transition-all">
+                    Decrypt Data
+                </button>
+            </div>
+        </div>
+
+        <!-- DASHBOARD VIEW (Hidden by Default) -->
+        <div id="dashboard-view" class="hidden w-full flex-col flex-1 gap-6">
+            
+            <div class="text-left mb-2 pl-2">
+                <h1 class="text-4xl md:text-5xl font-black tracking-tight">System <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-500">Overview.</span></h1>
+            </div>
+
+            <!-- Top KPIs -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                
+                <div class="true-glass rounded-[2rem] p-6 flex flex-col shadow-sm">
+                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">Total Users</span>
+                    <div class="flex items-end gap-3">
+                        <span id="stat-total-users" class="text-4xl md:text-5xl font-black">0</span>
+                        <span class="text-2xl mb-1 text-gray-300">👥</span>
+                    </div>
+                </div>
+
+                <div class="true-glass rounded-[2rem] p-6 flex flex-col shadow-sm border-indigo-500/30 bg-indigo-500/5">
+                    <span class="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-2">PRO Users (Buys)</span>
+                    <div class="flex items-end gap-3">
+                        <span id="stat-pro-users" class="text-4xl md:text-5xl font-black text-indigo-600 dark:text-indigo-400">0</span>
+                        <span class="text-2xl mb-1 text-indigo-300">💎</span>
+                    </div>
+                </div>
+
+                <div class="true-glass rounded-[2rem] p-6 flex flex-col shadow-sm border-green-500/30 bg-green-500/5">
+                    <span class="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-widest mb-2">New Signups Today</span>
+                    <div class="flex items-end gap-3">
+                        <span id="stat-new-today" class="text-4xl md:text-5xl font-black text-green-600 dark:text-green-400">0</span>
+                        <span class="text-2xl mb-1 text-green-300">🔥</span>
+                    </div>
+                </div>
+
+                <div class="true-glass rounded-[2rem] p-6 flex flex-col shadow-sm border-amber-500/30 bg-amber-500/5">
+                    <span class="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-widest mb-2">Total Referrals</span>
+                    <div class="flex items-end gap-3">
+                        <span id="stat-referrals" class="text-4xl md:text-5xl font-black text-amber-600 dark:text-amber-500">0</span>
+                        <span class="text-2xl mb-1 text-amber-300">🎁</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Recent Users Table -->
+            <div class="true-glass rounded-[2rem] p-6 md:p-8 flex-1 flex flex-col shadow-sm overflow-hidden min-h-[400px]">
+                <h3 class="text-xl font-black mb-6">Recent Logins / Signups</h3>
+                
+                <div class="w-full overflow-x-auto custom-scrollbar flex-1">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead>
+                            <tr class="border-b border-black/10 dark:border-white/10 text-xs md:text-sm uppercase text-gray-500 tracking-widest">
+                                <th class="py-3 px-4 font-bold">Email</th>
+                                <th class="py-3 px-4 font-bold">Name</th>
+                                <th class="py-3 px-4 font-bold text-center">Status</th>
+                                <th class="py-3 px-4 font-bold text-center">Tokens</th>
+                                <th class="py-3 px-4 font-bold text-center">Referrals</th>
+                                <th class="py-3 px-4 font-bold text-right">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-users-table" class="text-sm font-medium">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        async function fetchAdminData() {
+            const passInput = document.getElementById('admin-pass');
+            const btn = document.getElementById('login-btn');
+            const password = passInput.value.trim();
+
+            if (!password) {
+                Swal.fire({ icon: 'warning', title: 'Empty', text: 'Enter the password.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                return;
+            }
+
+            btn.innerText = "Decrypting...";
+            btn.disabled = true;
+
+            try {
+                // FIX H1: send the password in a POST body instead of the URL query string
+                // so it doesn't leak into server logs, browser history, or proxies.
+                const res = await fetch(`${API_BASE}/admin/stats`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: password })
+                });
+                const data = await res.json();
+
+                if (data.result === 'success') {
+                    // Hide Auth, Show Dashboard
+                    document.getElementById('auth-view').classList.add('hidden');
+                    document.getElementById('dashboard-view').classList.remove('hidden');
+                    document.getElementById('dashboard-view').classList.add('flex');
+
+                    // Populate Top KPIs
+                    document.getElementById('stat-total-users').innerText = data.total_users;
+                    document.getElementById('stat-pro-users').innerText = data.pro_users;
+                    document.getElementById('stat-new-today').innerText = data.new_signups_today;
+                    document.getElementById('stat-referrals').innerText = data.total_referrals_made;
+
+                    // Populate Table
+                    const table = document.getElementById('recent-users-table');
+                    table.innerHTML = '';
+
+                    if (data.recent_users.length === 0) {
+                        table.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">No users found.</td></tr>`;
+                    } else {
+                        data.recent_users.forEach(u => {
+                            const isPro = u.is_pro ? '<span class="bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-md font-black text-[10px] uppercase">PRO</span>' : '<span class="bg-gray-500/10 text-gray-500 px-3 py-1 rounded-md font-bold text-[10px] uppercase">Free</span>';
+                            
+                            const date = new Date(u.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                            table.insertAdjacentHTML('beforeend', `
+                                <tr class="border-b border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                                    <td class="py-4 px-4 font-bold">${u.email}</td>
+                                    <td class="py-4 px-4 text-gray-600 dark:text-gray-300">${u.name || 'Unknown'}</td>
+                                    <td class="py-4 px-4 text-center">${isPro}</td>
+                                    <td class="py-4 px-4 text-center font-black">${u.tokens_left}</td>
+                                    <td class="py-4 px-4 text-center font-black text-amber-500">${u.referral_count}</td>
+                                    <td class="py-4 px-4 text-right text-xs text-gray-500">${date}</td>
+                                </tr>
+                            `);
+                        });
+                    }
+
+                    Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Access Granted', showConfirmButton: false, timer: 2000, customClass: { popup: 'glass-swal' } });
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Access Denied', text: 'Incorrect password. Nice try.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+                }
+            } catch (err) {
+                Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not connect to the backend server.', customClass: { popup: 'glass-swal', confirmButton: 'glass-swal-confirm' }});
+            } finally {
+                btn.innerText = "Decrypt Data";
+                btn.disabled = false;
+            }
+        }
+
+        // Allow pressing Enter key to login
+        document.getElementById('admin-pass').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') fetchAdminData();
+        });
+    </script>
+</body>
+</html>

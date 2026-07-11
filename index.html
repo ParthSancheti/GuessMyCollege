@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guess My College</title>
+  <link rel="icon" href="bin/logo_rounded.png" type="image/png">
+  <!-- OTP rebuild: index is now just an entry point. The real app + Welcome/OTP
+       gate live in predict.html. Old marketing index backed up as index_OLD_marketing_backup.html -->
+  <script>
+    (function () {
+      const saved = localStorage.getItem('gmc-theme');
+      const sysDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.classList.toggle('dark', saved === 'dark' || (saved !== 'light' && sysDark));
+    })();
+    window.location.replace('predict.html');
+  </script>
+  <style>
+    html,body{height:100%;margin:0}
+    body{display:flex;align-items:center;justify-content:center;
+      font-family:Inter,system-ui,sans-serif;background:#07080e;color:#fff}
+    .dot{width:14px;height:14px;border-radius:50%;background:#7c3aed;
+      box-shadow:0 0 24px #7c3aed;animation:p 1s ease-in-out infinite}
+    @keyframes p{0%,100%{opacity:.3;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
+  </style>
+</head>
+<body>
+  <div style="text-align:center">
+    <div class="dot" style="margin:0 auto 14px"></div>
+    <p style="font-weight:800;letter-spacing:.04em;opacity:.7">Loading Guess My College…</p>
+    <noscript><a href="predict.html" style="color:#a78bfa">Continue →</a></noscript>
+  </div>
+</body>
+</html>
